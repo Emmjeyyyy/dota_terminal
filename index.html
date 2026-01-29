@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dota_terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --theme-color: #4ade80; /* Default Green */
+        --theme-bg: #050505;
+      }
+      
+      body {
+        background-color: var(--theme-bg);
+        color: var(--theme-color);
+        font-family: 'JetBrains Mono', monospace;
+        overflow-x: hidden;
+        margin: 0;
+      }
+
+      /* Custom Selection Styles to match Theme */
+      ::selection {
+        background-color: var(--theme-color);
+        color: var(--theme-bg);
+        text-shadow: none;
+      }
+      ::-moz-selection {
+        background-color: var(--theme-color);
+        color: var(--theme-bg);
+        text-shadow: none;
+      }
+
+      /* CRT Scanlines */
+      .scanlines {
+        background: linear-gradient(
+          to bottom,
+          rgba(255,255,255,0),
+          rgba(255,255,255,0) 50%,
+          rgba(0,0,0,0.2) 50%,
+          rgba(0,0,0,0.2)
+        );
+        background-size: 100% 4px;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        pointer-events: none;
+        z-index: 50;
+        animation: scanline-scroll 0.5s linear infinite; /* Subtle jitter */
+      }
+      
+      /* Subtle Vignette & Glow */
+      .crt-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4) 100%);
+        box-shadow: inset 0 0 60px rgba(0,0,0,0.7);
+        pointer-events: none;
+        z-index: 51;
+      }
+
+      /* Theme Utilities */
+      .text-theme { color: var(--theme-color); }
+      .bg-theme { background-color: var(--theme-color); }
+      .border-theme { border-color: var(--theme-color); }
+      
+      .text-theme-dim { color: color-mix(in srgb, var(--theme-color), transparent 40%); }
+      .border-theme-dim { border-color: color-mix(in srgb, var(--theme-color), transparent 75%); }
+      .bg-theme-dim { background-color: color-mix(in srgb, var(--theme-color), transparent 92%); }
+      
+      .hover-bg-theme:hover { background-color: var(--theme-color); color: var(--theme-bg); }
+      .hover-bg-theme-dim:hover { background-color: color-mix(in srgb, var(--theme-color), transparent 85%); }
+
+      .glow-text {
+        text-shadow: 0 0 4px color-mix(in srgb, var(--theme-color), transparent 40%);
+      }
+      
+      .glow-border {
+        box-shadow: 0 0 5px color-mix(in srgb, var(--theme-color), transparent 60%);
+      }
+
+      /* Terminal Components */
+      .terminal-box {
+        background: rgba(0,0,0,0.6);
+        border: 1px solid color-mix(in srgb, var(--theme-color), transparent 75%);
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      }
+      
+      .terminal-input {
+        background: transparent;
+        border: 1px solid color-mix(in srgb, var(--theme-color), transparent 60%);
+        color: var(--theme-color);
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .terminal-input:focus {
+        outline: none;
+        border-color: var(--theme-color);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--theme-color), transparent 60%);
+      }
+      .terminal-input::placeholder {
+        color: color-mix(in srgb, var(--theme-color), transparent 70%);
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 10px; }
+      ::-webkit-scrollbar-track { background: #000; border-left: 1px solid #111; }
+      ::-webkit-scrollbar-thumb { 
+        background: var(--theme-color); 
+        border: 2px solid #000;
+      }
+      ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--theme-color), white 20%); }
+
+      /* Animations */
+      @keyframes flicker {
+        0% { opacity: 0.98; }
+        5% { opacity: 0.95; }
+        10% { opacity: 0.98; }
+        100% { opacity: 1; }
+      }
+      .crt-flicker {
+        animation: flicker 0.2s infinite;
+      }
+
+      /* Hero Warp / Distortion Animation */
+      @keyframes warp-in {
+        0% {
+          opacity: 0;
+          transform: scale(0.9) skewX(5deg) translateY(10px);
+          filter: blur(2px) contrast(1.2);
+        }
+        60% {
+          transform: scale(1.02) skewX(-2deg) translateY(-2px);
+          filter: blur(0) contrast(1);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) skewX(0) translateY(0);
+        }
+      }
+      
+      .animate-warp-in {
+        animation: warp-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
