@@ -213,10 +213,6 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                             };
 
                             // To calculate 'Other', subtract AP from total games in game_mode counts
-                            // Note: Total games in counts.game_mode sum might differ slightly from WL due to different tracking, 
-                            // but usually safer to sum game_mode keys. 
-                            // For simplicity, we can just use the total from the game_mode object or WL.
-                            // Let's iterate game_mode to get total tracked there.
                             let totalGamesGM = 0;
                             let totalWinsGM = 0;
                             if (counts.game_mode) {
@@ -275,7 +271,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                 {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left text-xs min-w-[450px]">
-                           <thead className="bg-theme-dim text-black font-bold uppercase text-[10px]">
+                           <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
                               <tr>
                                 <th className="p-3">Unit_Designation</th>
                                 <th className="p-3 text-center">Deployments</th>
@@ -319,7 +315,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                  {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left text-xs min-w-[450px]">
-                           <thead className="bg-theme-dim text-black font-bold uppercase text-[10px]">
+                           <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
                               <tr>
                                 <th className="p-3">Ally_Identity</th>
                                 <th className="p-3 text-center">Co_Ops</th>
