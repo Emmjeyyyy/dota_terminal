@@ -126,7 +126,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3 sm:gap-6">
              <button 
                 onClick={navigateToGlobal} 
-                className="text-theme-dim hover:text-theme flex items-center gap-2 transition-colors uppercase text-xs tracking-wider"
+                className={`text-theme-dim hover:text-theme flex items-center gap-2 transition-colors uppercase text-xs tracking-wider ${state.view === 'GLOBAL' ? 'text-theme' : ''}`}
              >
                 <Globe className="w-4 h-4" /> <span className="hidden sm:inline">[GLOBAL_DATA]</span><span className="sm:hidden">[DATA]</span>
              </button>
@@ -154,7 +154,7 @@ const App: React.FC = () => {
         
         {state.view === 'HOME' && (
            <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-              <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none overflow-x-hidden">
+              <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4">
                 {ASCII_ART}
               </pre>
               <div className="h-px w-32 bg-theme mb-8 opacity-50"></div>
@@ -195,9 +195,9 @@ const App: React.FC = () => {
            />
         )}
 
-        {state.view === 'GLOBAL' && (
+        <div className={state.view === 'GLOBAL' ? 'block w-full' : 'hidden'}>
            <GlobalView onMatchClick={navigateToMatch} />
-        )}
+        </div>
 
       </main>
 

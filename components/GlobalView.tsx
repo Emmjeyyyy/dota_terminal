@@ -1,12 +1,19 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { getGlobalHeroes, getProMatches } from '../services/api';
 import { GlobalHero, ProMatch } from '../types';
-import { Loader2, Swords, Gamepad2, Search } from 'lucide-react';
+import { Loader2, Swords, Gamepad2, Search, Filter, X } from 'lucide-react';
 import { getHeroImageUrl } from '../services/heroService';
 
 interface GlobalViewProps {
   onMatchClick: (id: number) => void;
 }
+
+const ATTR_FILTERS = [
+  { id: 'str', label: 'Strength', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-str-active.png' },
+  { id: 'agi', label: 'Agility', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-agi-active.png' },
+  { id: 'int', label: 'Intelligence', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-int-active.png' },
+  { id: 'all', label: 'Universal', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-uni-active.png' },
+];
 
 const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
   const [tab, setTab] = useState<'heroes' | 'pro'>('heroes');
@@ -14,6 +21,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
   const [matches, setMatches] = useState<ProMatch[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAttrs, setSelectedAttrs] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,17 +36,36 @@ const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
         setLoading(false);
     };
     fetchData();
-  }, [tab]);
+  }, [tab, heroes.length, matches.length]);
+
+  const toggleAttr = (attrId: string) => {
+    setSelectedAttrs(prev => 
+      prev.includes(attrId) 
+        ? prev.filter(id => id !== attrId) 
+        : [...prev, attrId]
+    );
+  };
 
   const filteredHeroes = useMemo(() => {
-    if (!searchQuery) return heroes;
-    const lower = searchQuery.toLowerCase();
-    return heroes.filter(h => 
-      h.localized_name.toLowerCase().includes(lower) || 
-      h.name.toLowerCase().includes(lower) ||
-      h.primary_attr.toLowerCase().includes(lower)
-    );
-  }, [heroes, searchQuery]);
+    let result = heroes;
+
+    // Filter by Attributes
+    if (selectedAttrs.length > 0) {
+      result = result.filter(h => selectedAttrs.includes(h.primary_attr));
+    }
+
+    // Filter by Search
+    if (searchQuery) {
+      const lower = searchQuery.toLowerCase();
+      result = result.filter(h => 
+        h.localized_name.toLowerCase().includes(lower) || 
+        h.name.toLowerCase().includes(lower) ||
+        h.primary_attr.toLowerCase().includes(lower)
+      );
+    }
+
+    return result;
+  }, [heroes, searchQuery, selectedAttrs]);
 
   return (
     <div className="animate-fade-in">
@@ -65,19 +92,51 @@ const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
        ) : (
            <>
               {tab === 'heroes' && (
-                  <div className="space-y-4">
-                     {/* Search Bar */}
-                     <div className="relative max-w-md">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-dim">
-                           <Search className="w-4 h-4" />
+                  <div className="space-y-6">
+                     {/* Controls: Search & Filter */}
+                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="relative w-full md:max-w-xs">
+                           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-dim">
+                              <Search className="w-4 h-4" />
+                           </div>
+                           <input
+                              type="text"
+                              placeholder="FILTER_OPERATIVES..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="w-full bg-black/50 border border-theme-dim text-theme pl-10 pr-4 py-2 text-xs uppercase tracking-wider focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/50 transition-all placeholder-theme-dim/50"
+                           />
                         </div>
-                        <input
-                           type="text"
-                           placeholder="FILTER_OPERATIVES..."
-                           value={searchQuery}
-                           onChange={(e) => setSearchQuery(e.target.value)}
-                           className="w-full bg-black/50 border border-theme-dim text-theme pl-10 pr-4 py-2 text-xs uppercase tracking-wider focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/50 transition-all placeholder-theme-dim/50"
-                        />
+
+                        <div className="flex flex-wrap items-center gap-2">
+                           <span className="text-[10px] uppercase text-theme-dim tracking-wider mr-1 hidden sm:flex items-center gap-1">
+                              <Filter className="w-3 h-3" /> Attr:
+                           </span>
+                           {ATTR_FILTERS.map((attr) => (
+                              <button
+                                 key={attr.id}
+                                 onClick={() => toggleAttr(attr.id)}
+                                 className={`
+                                    w-8 h-8 rounded-full border transition-all duration-300 relative group overflow-hidden
+                                    ${selectedAttrs.includes(attr.id) 
+                                       ? 'opacity-100 scale-110 border-theme bg-theme/10 shadow-[0_0_10px_rgba(74,222,128,0.3)]' 
+                                       : 'opacity-40 border-transparent hover:opacity-100 hover:scale-105 grayscale hover:grayscale-0'}
+                                 `}
+                                 title={attr.label}
+                              >
+                                 <img src={attr.icon} alt={attr.label} className="w-full h-full object-contain" />
+                              </button>
+                           ))}
+                           
+                           {selectedAttrs.length > 0 && (
+                              <button 
+                                 onClick={() => setSelectedAttrs([])}
+                                 className="ml-2 px-2 py-1 text-[10px] uppercase text-theme-dim hover:text-theme border border-theme-dim hover:border-theme flex items-center gap-1 transition-all"
+                              >
+                                 <X className="w-3 h-3" /> Clear
+                              </button>
+                           )}
+                        </div>
                      </div>
 
                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 min-h-[300px] content-start">
@@ -101,8 +160,16 @@ const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
                            </div>
                         ))}
                         {filteredHeroes.length === 0 && (
-                           <div className="col-span-full py-20 text-center text-theme-dim border border-dashed border-theme-dim">
-                              <span className="text-xs uppercase">No_Operatives_Found_Matching_Query</span>
+                           <div className="col-span-full py-20 text-center text-theme-dim border border-dashed border-theme-dim flex flex-col items-center justify-center gap-4">
+                              <span className="text-xs uppercase">No_Operatives_Found</span>
+                              {(selectedAttrs.length > 0 || searchQuery) && (
+                                  <button 
+                                    onClick={() => { setSelectedAttrs([]); setSearchQuery(''); }}
+                                    className="text-xs uppercase text-theme hover:underline flex items-center gap-2"
+                                  >
+                                    <X className="w-3 h-3" /> Reset_All_Filters
+                                  </button>
+                              )}
                            </div>
                         )}
                      </div>
