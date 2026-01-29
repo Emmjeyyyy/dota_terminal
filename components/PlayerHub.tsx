@@ -120,7 +120,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
          <img 
             src={profile.profile.avatarfull} 
             alt={profile.profile.personaname} 
-            className="w-24 h-24 border border-theme z-10 shrink-0"
+            className="w-24 h-24 border border-theme z-10 shrink-0 brightness-125 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"
          />
          <div className="text-center md:text-left flex-1 z-10 w-full">
             <h1 className="text-2xl md:text-3xl font-bold text-theme mb-1 uppercase tracking-tight glow-text break-words">{profile.profile.personaname}</h1>

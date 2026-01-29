@@ -28,7 +28,7 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
                   <img 
                     src={getHeroImageUrl(match.hero_id)} 
                     alt="Hero"
-                    className="w-10 h-auto sm:w-12 sm:h-auto opacity-70 group-hover:opacity-100 transition-opacity border border-theme-dim" 
+                    className="w-10 h-auto sm:w-12 sm:h-auto opacity-100 border border-theme-dim brightness-110 shadow-[0_0_5px_rgba(74,222,128,0.1)]" 
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x36?text=?' }}
                   />
                </div>
