@@ -88,21 +88,22 @@ const App: React.FC = () => {
               <Settings className="w-5 h-5" /> SYSTEM CONFIG
             </h2>
             <div className="space-y-4">
-              <label className="block text-xs uppercase tracking-widest text-theme-dim mb-2">Phosphor Color</label>
-              <div className="grid grid-cols-1 gap-2 max-h-[60vh] overflow-y-auto">
+              <label className="block text-xs uppercase tracking-widest text-theme-dim mb-4">Phosphor Color</label>
+              <div className="grid grid-cols-5 gap-3">
                 {THEMES.map((theme) => (
                   <button
                     key={theme.value}
                     onClick={() => setThemeColor(theme.value)}
-                    className={`flex items-center gap-3 px-4 py-3 border text-left transition-all ${
-                      themeColor === theme.value 
-                        ? 'bg-theme text-black border-theme font-bold' 
-                        : 'bg-transparent text-theme-dim border-theme-dim hover:border-theme hover:text-theme'
-                    }`}
-                  >
-                    <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: theme.value }} />
-                    {theme.name}
-                  </button>
+                    className={`
+                      aspect-square w-full border-2 transition-all duration-300
+                      ${themeColor === theme.value 
+                        ? 'border-white shadow-[0_0_15px_var(--theme-color)] scale-110 opacity-100 z-10' 
+                        : 'border-transparent opacity-40 hover:opacity-100 hover:scale-105 hover:border-[var(--theme-color)]'
+                      }
+                    `}
+                    style={{ backgroundColor: theme.value }}
+                    title={theme.name}
+                  />
                 ))}
               </div>
             </div>
@@ -154,11 +155,10 @@ const App: React.FC = () => {
         
         {state.view === 'HOME' && (
            <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-              <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4 border-0 border-b border-green-500">
+              <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4 border-0 border-b border-current">
                 {ASCII_ART}
               </pre>
               <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
-                ACCESSING DOTA DATABASE...<br/>
                 ENTER ACCOUNT ID BELOW.
               </p>
               
