@@ -7,7 +7,8 @@ import {
   Peer, 
   PlayerHeroStats,
   GlobalHero,
-  ProMatch
+  ProMatch,
+  PlayerCounts
 } from '../types';
 
 // Simple rate limiter state
@@ -122,6 +123,17 @@ export const getProMatches = async (): Promise<ProMatch[]> => {
   } catch (e) {
     console.error("Error fetching pro matches:", e);
     return [];
+  }
+};
+
+export const getPlayerCounts = async (accountId: number): Promise<PlayerCounts | null> => {
+  try {
+    const res = await rateLimitedFetch(`${API_BASE_URL}/players/${accountId}/counts`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error("Error fetching counts:", e);
+    return null;
   }
 };
 

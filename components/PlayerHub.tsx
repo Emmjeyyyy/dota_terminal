@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { PlayerProfile, WinLoss, MatchSummary, Peer, PlayerHeroStats } from '../types';
-import { getPlayerProfile, getPlayerWL, getRecentMatches, getPlayerPeers, getPlayerHeroes } from '../services/api';
-import { Loader2, Users, History, LayoutGrid, AlertCircle, HardDrive } from 'lucide-react';
+import { PlayerProfile, WinLoss, MatchSummary, Peer, PlayerHeroStats, PlayerCounts, CountMetric } from '../types';
+import { getPlayerProfile, getPlayerWL, getRecentMatches, getPlayerPeers, getPlayerHeroes, getPlayerCounts } from '../services/api';
+import { Loader2, Users, History, LayoutGrid, AlertCircle, HardDrive, BarChart3 } from 'lucide-react';
 import MatchList from './MatchList';
 import { getHeroImageUrl, getHeroName } from '../services/heroService';
 
@@ -17,6 +17,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [wl, setWl] = useState<WinLoss | null>(null);
+  const [counts, setCounts] = useState<PlayerCounts | null>(null);
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   
@@ -28,15 +29,17 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
     let mounted = true;
     const fetchData = async () => {
       setLoading(true);
-      const [p, w, m] = await Promise.all([
+      const [p, w, m, c] = await Promise.all([
         getPlayerProfile(accountId),
         getPlayerWL(accountId),
-        getRecentMatches(accountId)
+        getRecentMatches(accountId),
+        getPlayerCounts(accountId)
       ]);
       if (mounted) {
         setProfile(p);
         setWl(w);
         setMatches(m);
+        setCounts(c);
         setLoading(false);
       }
     };
@@ -81,6 +84,33 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
   }
 
   const winRate = wl ? ((wl.win / (wl.win + wl.lose)) * 100).toFixed(1) : '0';
+
+  // Helper for safe count access
+  const getSafeCount = (metric: Record<string, CountMetric> | undefined, key: string): CountMetric => {
+      return metric?.[key] || { games: 0, win: 0 };
+  };
+
+  // Helper to calculate WR
+  const calculateWinRate = (wins: number, games: number) => {
+      if (games === 0) return '0.0';
+      return ((wins / games) * 100).toFixed(1);
+  };
+
+  const renderStatRow = (label: string, wins: number, games: number) => {
+      const wr = calculateWinRate(wins, games);
+      const wrNum = parseFloat(wr);
+      const intensity = wrNum >= 55 ? 'text-theme' : wrNum >= 45 ? 'text-theme opacity-80' : 'text-theme-dim';
+      
+      return (
+          <div className="flex items-center justify-between py-1.5 border-b border-theme-dim/30 last:border-0 text-xs">
+              <span className="text-theme-dim uppercase tracking-wider">{label}</span>
+              <div className="flex items-center gap-4">
+                  <span className="font-mono text-theme-dim">{games}</span>
+                  <span className={`font-mono font-bold w-12 text-right ${intensity}`}>{wr}%</span>
+              </div>
+          </div>
+      );
+  };
 
   return (
     <div className="space-y-6">
@@ -153,23 +183,88 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                    <MatchList matches={matches} onMatchClick={onMatchClick} />
                 </div>
                 <div>
-                    <h3 className="text-xs font-bold text-theme uppercase mb-4">Performance_Metrics</h3>
-                    <div className="bg-black/50 p-4 border border-theme-dim text-xs text-theme-dim font-mono">
-                        <p className="mb-4 uppercase border-b border-theme-dim pb-2">Analysis Scope: Last 50 Matches</p>
-                        <ul className="space-y-3">
-                            <li className="flex justify-between">
-                                <span className="uppercase">KDA_Factor</span>
-                                <span className="text-theme font-bold">
-                                    {(matches.reduce((a, b) => a + (b.kills + b.assists) / (b.deaths || 1), 0) / (matches.length || 1)).toFixed(2)}
-                                </span>
-                            </li>
-                            <li className="flex justify-between">
-                                <span className="uppercase">Avg_Duration</span>
-                                <span className="text-theme font-bold">
-                                    {(matches.reduce((a, b) => a + b.duration, 0) / (matches.length || 1) / 60).toFixed(0)} MIN
-                                </span>
-                            </li>
-                        </ul>
+                    <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2"><BarChart3 className="w-4 h-4"/> Quick_Stats</h3>
+                    <div className="bg-black/50 p-4 border border-theme-dim text-xs font-mono">
+                        
+                        {/* Lifetime Overview */}
+                        <div className="mb-6">
+                            <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lifetime Overview</h4>
+                            <div className="flex justify-between items-end mb-1">
+                                <span className="uppercase text-theme-dim">Total Matches</span>
+                                <span className="text-theme font-bold text-lg">{(wl?.win || 0) + (wl?.lose || 0)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="uppercase text-theme-dim">Overall Win Rate</span>
+                                <span className={`font-bold ${parseFloat(winRate) >= 50 ? 'text-theme' : 'text-theme opacity-80'}`}>{winRate}%</span>
+                            </div>
+                            <div className="text-[10px] uppercase text-theme-dim mt-2 opacity-60 text-right">
+                                {(wl?.win || 0) + (wl?.lose || 0) > 0 ? ">> STATS_RECORDED" : ">> NO_STATS_RECORDED"}
+                            </div>
+                        </div>
+
+                        {counts ? (() => {
+                            // Preparation
+                            const normal = getSafeCount(counts.lobby_type, '0'); // Public matchmaking
+                            const ranked = getSafeCount(counts.lobby_type, '7'); // Ranked
+
+                            const allPick = {
+                                games: getSafeCount(counts.game_mode, '1').games + getSafeCount(counts.game_mode, '22').games,
+                                win: getSafeCount(counts.game_mode, '1').win + getSafeCount(counts.game_mode, '22').win
+                            };
+
+                            // To calculate 'Other', subtract AP from total games in game_mode counts
+                            // Note: Total games in counts.game_mode sum might differ slightly from WL due to different tracking, 
+                            // but usually safer to sum game_mode keys. 
+                            // For simplicity, we can just use the total from the game_mode object or WL.
+                            // Let's iterate game_mode to get total tracked there.
+                            let totalGamesGM = 0;
+                            let totalWinsGM = 0;
+                            if (counts.game_mode) {
+                                Object.values(counts.game_mode).forEach(c => { totalGamesGM += c.games; totalWinsGM += c.win; });
+                            }
+                            
+                            const other = {
+                                games: totalGamesGM - allPick.games,
+                                win: totalWinsGM - allPick.win
+                            };
+
+                            const radiant = getSafeCount(counts.is_radiant, '1');
+                            const dire = getSafeCount(counts.is_radiant, '0');
+
+                            return (
+                                <div className="space-y-6">
+                                    {/* Lobby Breakdown */}
+                                    <div>
+                                        <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lobby Breakdown</h4>
+                                        <div className="flex justify-between text-[9px] uppercase text-theme-dim mb-1 px-1">
+                                            <span>Type</span>
+                                            <div className="flex gap-4"><span>Games</span><span>Win%</span></div>
+                                        </div>
+                                        {renderStatRow("Normal", normal.win, normal.games)}
+                                        {renderStatRow("Ranked", ranked.win, ranked.games)}
+                                    </div>
+
+                                    {/* Mode Breakdown */}
+                                    <div>
+                                        <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Game Modes</h4>
+                                        {renderStatRow("All Pick", allPick.win, allPick.games)}
+                                        {renderStatRow("Other", other.win, other.games)}
+                                    </div>
+
+                                    {/* Faction Breakdown */}
+                                    <div>
+                                        <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Faction</h4>
+                                        {renderStatRow("Radiant", radiant.win, radiant.games)}
+                                        {renderStatRow("Dire", dire.win, dire.games)}
+                                    </div>
+                                </div>
+                            );
+                        })() : (
+                            <div className="py-8 text-center text-theme-dim animate-pulse">
+                                Loading Detail Stats...
+                            </div>
+                        )}
+                        
                     </div>
                 </div>
              </div>
@@ -194,7 +289,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                   return (
                                     <tr key={h.hero_id} className="hover:bg-white/5 transition-colors">
                                         <td className="p-3 flex items-center gap-3">
-                                            <img src={getHeroImageUrl(h.hero_id)} className="w-8 h-auto border border-theme-dim opacity-80" alt="" />
+                                            <img src={getHeroImageUrl(h.hero_id)} className="w-8 h-8 border border-theme-dim opacity-80" alt="" />
                                             <span className="font-bold text-theme uppercase truncate max-w-[150px]">{getHeroName(h.hero_id)}</span>
                                         </td>
                                         <td className="p-3 text-center text-theme-dim font-mono">{h.games}</td>

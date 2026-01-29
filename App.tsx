@@ -143,7 +143,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Router */}
-      <main className="container mx-auto px-4 py-8 relative z-10 crt-flicker">
+      <main className="container mx-auto px-4 py-8 relative z-10">
         
         {state.view === 'HOME' && (
            <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">

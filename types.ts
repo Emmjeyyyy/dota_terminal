@@ -160,3 +160,18 @@ export interface PartyGroup {
   losses: number;
   matches: ExtendedMatch[];
 }
+
+export interface CountMetric {
+  games: number;
+  win: number;
+}
+
+export interface PlayerCounts {
+  leaver_status: Record<string, CountMetric>;
+  game_mode: Record<string, CountMetric>;
+  lobby_type: Record<string, CountMetric>;
+  lane_role: Record<string, CountMetric>;
+  region: Record<string, CountMetric>;
+  patch: Record<string, CountMetric>;
+  is_radiant: Record<string, CountMetric>;
+}
