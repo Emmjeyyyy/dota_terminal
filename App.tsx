@@ -154,10 +154,9 @@ const App: React.FC = () => {
         
         {state.view === 'HOME' && (
            <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-              <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4">
+              <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4 border-0 border-b border-green-500">
                 {ASCII_ART}
               </pre>
-              <div className="h-px w-32 bg-theme mb-8 opacity-50"></div>
               <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
                 ACCESSING DOTA DATABASE...<br/>
                 ENTER ACCOUNT ID BELOW.
