@@ -152,7 +152,7 @@ const App: React.FC = () => {
               </h1>
               <div className="h-px w-32 bg-theme mb-8 opacity-50"></div>
               <p className="text-theme-dim text-center max-w-lg mb-10 text-lg font-light">
-                ACCESSING OPENDOTA DATABASE...<br/>
+                ACCESSING DOTA DATABASE...<br/>
                 ENTER ACCOUNT IDENTIFIER BELOW.
               </p>
               
