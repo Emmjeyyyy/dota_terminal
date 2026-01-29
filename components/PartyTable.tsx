@@ -23,13 +23,13 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, onSelectParty, selecte
   });
 
   return (
-    <div className="terminal-box overflow-hidden">
-      <div className="p-4 border-b border-theme-dim flex justify-between items-center bg-black/20">
-        <h2 className="text-lg font-bold text-theme flex items-center gap-2 uppercase tracking-tight">
+    <div className="terminal-box overflow-hidden flex flex-col h-full">
+      <div className="p-3 md:p-4 border-b border-theme-dim flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-black/20">
+        <h2 className="text-base md:text-lg font-bold text-theme flex items-center gap-2 uppercase tracking-tight">
           <Users className="w-5 h-5" />
-          Squad_Compositions
+          Squads
         </h2>
-        <div className="flex text-[10px] uppercase border border-theme-dim">
+        <div className="flex text-[10px] uppercase border border-theme-dim self-end sm:self-auto">
           <button
             onClick={() => setSortField('matches')}
             className={`px-3 py-1 transition-colors ${sortField === 'matches' ? 'bg-theme text-black font-bold' : 'text-theme-dim hover:text-theme'}`}
@@ -46,14 +46,14 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, onSelectParty, selecte
         </div>
       </div>
       
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full text-left border-collapse min-w-[300px]">
           <thead>
             <tr className="text-[10px] uppercase text-theme-dim border-b border-theme-dim tracking-wider">
-              <th className="p-4 w-1/3">Operatives</th>
-              <th className="p-4 text-center">GAMES</th>
-              <th className="p-4 text-center">RECORD</th>
-              <th className="p-4 text-right">RATING</th>
+              <th className="p-2 md:p-4 w-1/3 min-w-[120px]">Operatives</th>
+              <th className="p-2 md:p-4 text-center">GAMES</th>
+              <th className="p-2 md:p-4 text-center">RECORD</th>
+              <th className="p-2 md:p-4 text-right">RATING</th>
             </tr>
           </thead>
           <tbody>
@@ -70,11 +70,11 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, onSelectParty, selecte
                     ${isSelected ? 'bg-theme-dim border-l-4 border-l-theme' : 'hover:bg-white/5 border-l-4 border-l-transparent'}
                   `}
                 >
-                  <td className="p-4">
+                  <td className="p-2 md:p-4">
                     {party.id === 'SOLO' ? (
                        <span className="text-theme-dim italic uppercase text-xs opacity-60 group-hover:opacity-100">[SOLO_UNIT]</span>
                     ) : (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1 md:gap-2">
                         {party.teammates.map((mate) => (
                           <div 
                             key={mate.account_id} 
@@ -86,23 +86,23 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, onSelectParty, selecte
                               className="w-4 h-4 opacity-80"
                               onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/20?text=?' }}
                             />
-                            <span className="uppercase text-[10px] truncate max-w-[80px]">{mate.personaname}</span>
+                            <span className="uppercase text-[10px] truncate max-w-[60px] md:max-w-[80px]">{mate.personaname}</span>
                           </div>
                         ))}
                       </div>
                     )}
                   </td>
-                  <td className="p-4 text-center font-bold text-theme">
+                  <td className="p-2 md:p-4 text-center font-bold text-theme">
                     {party.matches.length.toString().padStart(2, '0')}
                   </td>
-                  <td className="p-4 text-center text-xs font-mono">
+                  <td className="p-2 md:p-4 text-center text-xs font-mono whitespace-nowrap">
                     <span className="text-theme opacity-100">{party.wins}W</span>
                     <span className="text-theme-dim mx-1">/</span>
                     <span className="text-theme opacity-60">{party.losses}L</span>
                   </td>
-                  <td className="p-4 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                       <div className="w-16 h-2 border border-theme-dim p-0.5">
+                  <td className="p-2 md:p-4 text-right">
+                    <div className="flex items-center justify-end gap-2 md:gap-3">
+                       <div className="hidden sm:block w-16 h-2 border border-theme-dim p-0.5">
                          <div 
                            className="h-full bg-theme" 
                            style={{ width: `${winrate}%`, opacity: winrate >= 50 ? 1 : 0.4 }}

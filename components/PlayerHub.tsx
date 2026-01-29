@@ -85,16 +85,16 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="terminal-box p-6 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+      <div className="terminal-box p-6 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative overflow-hidden">
          <div className="absolute inset-0 bg-theme-dim opacity-5 pointer-events-none"></div>
          <img 
             src={profile.profile.avatarfull} 
             alt={profile.profile.personaname} 
-            className="w-24 h-24 border border-theme z-10"
+            className="w-24 h-24 border border-theme z-10 shrink-0"
          />
-         <div className="text-center md:text-left flex-1 z-10">
-            <h1 className="text-3xl font-bold text-theme mb-1 uppercase tracking-tight glow-text">{profile.profile.personaname}</h1>
-            <div className="flex items-center justify-center md:justify-start gap-4 text-xs text-theme-dim font-mono">
+         <div className="text-center md:text-left flex-1 z-10 w-full">
+            <h1 className="text-2xl md:text-3xl font-bold text-theme mb-1 uppercase tracking-tight glow-text break-words">{profile.profile.personaname}</h1>
+            <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 md:gap-4 text-xs text-theme-dim font-mono">
                {profile.profile.loccountrycode && (
                    <span className="flex items-center gap-1 border border-theme-dim px-2 py-0.5">
                       LOC: {profile.profile.loccountrycode}
@@ -104,18 +104,18 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
             </div>
          </div>
          
-         <div className="flex gap-4 text-center z-10">
-            <div className="bg-black/50 px-4 py-2 border border-theme-dim">
-               <div className="text-[10px] text-theme-dim uppercase tracking-wider mb-1">Wins</div>
-               <div className="text-theme font-bold text-lg">{wl?.win || 0}</div>
+         <div className="grid grid-cols-3 gap-2 md:gap-4 text-center z-10 w-full md:w-auto">
+            <div className="bg-black/50 px-2 py-2 border border-theme-dim">
+               <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Wins</div>
+               <div className="text-theme font-bold text-base md:text-lg">{wl?.win || 0}</div>
             </div>
-            <div className="bg-black/50 px-4 py-2 border border-theme-dim">
-               <div className="text-[10px] text-theme-dim uppercase tracking-wider mb-1">Losses</div>
-               <div className="text-theme opacity-70 font-bold text-lg">{wl?.lose || 0}</div>
+            <div className="bg-black/50 px-2 py-2 border border-theme-dim">
+               <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Losses</div>
+               <div className="text-theme opacity-70 font-bold text-base md:text-lg">{wl?.lose || 0}</div>
             </div>
-            <div className="bg-black/50 px-4 py-2 border border-theme-dim">
-               <div className="text-[10px] text-theme-dim uppercase tracking-wider mb-1">Ratio</div>
-               <div className="font-bold text-lg text-theme glow-text">
+            <div className="bg-black/50 px-2 py-2 border border-theme-dim">
+               <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Ratio</div>
+               <div className="font-bold text-base md:text-lg text-theme glow-text">
                    {winRate}%
                </div>
             </div>
@@ -123,22 +123,22 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-theme-dim bg-black/40">
+      <div className="flex border-b border-theme-dim bg-black/40 overflow-x-auto custom-scrollbar">
          <button 
             onClick={() => setActiveTab('overview')}
-            className={`px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all ${activeTab === 'overview' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+            className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'overview' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
          >
             <History className="w-4 h-4" /> [Log]
          </button>
          <button 
             onClick={() => setActiveTab('heroes')}
-            className={`px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all ${activeTab === 'heroes' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+            className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'heroes' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
          >
             <LayoutGrid className="w-4 h-4" /> [Arsenal]
          </button>
          <button 
             onClick={() => setActiveTab('peers')}
-            className={`px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all ${activeTab === 'peers' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+            className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'peers' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
          >
             <Users className="w-4 h-4" /> [Network]
          </button>
@@ -178,8 +178,8 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
          {activeTab === 'heroes' && (
              <div>
                 {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left text-xs min-w-[450px]">
                            <thead className="bg-theme-dim text-black font-bold uppercase text-[10px]">
                               <tr>
                                 <th className="p-3">Unit_Designation</th>
@@ -195,7 +195,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                     <tr key={h.hero_id} className="hover:bg-white/5 transition-colors">
                                         <td className="p-3 flex items-center gap-3">
                                             <img src={getHeroImageUrl(h.hero_id)} className="w-8 h-auto border border-theme-dim opacity-80" alt="" />
-                                            <span className="font-bold text-theme uppercase">{getHeroName(h.hero_id)}</span>
+                                            <span className="font-bold text-theme uppercase truncate max-w-[150px]">{getHeroName(h.hero_id)}</span>
                                         </td>
                                         <td className="p-3 text-center text-theme-dim font-mono">{h.games}</td>
                                         <td className="p-3 text-center">
@@ -222,8 +222,8 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
          {activeTab === 'peers' && (
             <div>
                  {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left text-xs min-w-[450px]">
                            <thead className="bg-theme-dim text-black font-bold uppercase text-[10px]">
                               <tr>
                                 <th className="p-3">Ally_Identity</th>
@@ -239,7 +239,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                     <tr key={p.account_id} className="hover:bg-white/5 cursor-pointer transition-colors group" onClick={() => onPeerClick(p.account_id)}>
                                         <td className="p-3 flex items-center gap-3">
                                             <img src={p.avatar} className="w-8 h-8 rounded-full border border-theme-dim opacity-80 group-hover:opacity-100" alt="" onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/32'} />
-                                            <span className="font-bold text-theme uppercase group-hover:underline">{p.personaname}</span>
+                                            <span className="font-bold text-theme uppercase group-hover:underline truncate max-w-[150px]">{p.personaname}</span>
                                         </td>
                                         <td className="p-3 text-center text-theme-dim font-mono">{p.with_games}</td>
                                         <td className="p-3 text-center">

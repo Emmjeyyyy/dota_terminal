@@ -14,23 +14,25 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
       {matches.map((match) => {
         const isRadiant = match.player_slot < 128;
         const won = (isRadiant && match.radiant_win) || (!isRadiant && !match.radiant_win);
+        const durationMin = Math.floor(match.duration / 60);
+        const durationSec = String(match.duration % 60).padStart(2, '0');
 
         return (
           <div 
             key={match.match_id} 
             onClick={() => onMatchClick(match.match_id)}
-            className="group cursor-pointer border border-theme-dim p-2 flex items-center justify-between hover:bg-theme-dim transition-all hover:border-theme"
+            className="group cursor-pointer border border-theme-dim p-2 sm:p-3 flex items-center justify-between hover:bg-theme-dim transition-all hover:border-theme"
           >
             <div className="flex items-center gap-3">
-               <div className="relative">
+               <div className="relative shrink-0">
                   <img 
                     src={getHeroImageUrl(match.hero_id)} 
                     alt="Hero"
-                    className="w-10 h-auto opacity-70 group-hover:opacity-100 transition-opacity border border-theme-dim" 
+                    className="w-10 h-auto sm:w-12 sm:h-auto opacity-70 group-hover:opacity-100 transition-opacity border border-theme-dim" 
                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x36?text=?' }}
                   />
                </div>
-               <div>
+               <div className="flex flex-col">
                   <div className={`font-bold text-xs uppercase tracking-wider ${won ? 'text-theme' : 'text-theme opacity-60'}`}>
                     {won ? '>> VICTORY' : '>> DEFEAT'}
                   </div>
@@ -40,18 +42,20 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
                </div>
             </div>
             
-            <div className="text-right flex gap-4 items-center">
-               <div className="hidden sm:block">
-                 <div className="text-[9px] text-theme-dim uppercase">KDA</div>
-                 <div className="text-xs font-mono text-theme">
-                   {match.kills}/{match.deaths}/{match.assists}
+            <div className="text-right flex items-center gap-2 sm:gap-6">
+               <div className="flex flex-col sm:items-end">
+                 <div className="text-[9px] text-theme-dim uppercase hidden sm:block">Performance</div>
+                 <div className="text-xs font-mono text-theme flex gap-2 sm:block">
+                   <span>{match.kills}/{match.deaths}/{match.assists}</span>
+                   <span className="text-theme-dim sm:hidden">|</span>
+                   <span className="sm:hidden text-theme-dim">{durationMin}:{durationSec}</span>
                  </div>
                </div>
                
                <div className="hidden sm:block">
                  <div className="text-[9px] text-theme-dim uppercase">TIME</div>
                  <div className="text-xs font-mono text-theme">
-                   {Math.floor(match.duration / 60)}:{String(match.duration % 60).padStart(2, '0')}
+                   {durationMin}:{durationSec}
                  </div>
                </div>
 

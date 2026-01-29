@@ -52,7 +52,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
   const direPlayers = match.players.filter(p => p.player_slot >= 128);
 
   const TeamTable = ({ title, players, isWinner, isRadiant }: { title: string, players: MatchPlayerDetail[], isWinner: boolean, isRadiant: boolean }) => (
-    <div className={`mb-8 terminal-box ${isWinner ? 'border-theme' : 'border-theme-dim'}`}>
+    <div className={`mb-6 md:mb-8 terminal-box ${isWinner ? 'border-theme' : 'border-theme-dim'}`}>
       <div className={`p-3 flex justify-between items-center border-b border-theme-dim ${isWinner ? 'bg-theme-dim' : ''}`}>
         <h3 className="font-bold text-sm text-theme uppercase tracking-wider flex items-center gap-2">
            <Terminal className="w-4 h-4" /> {title}
@@ -61,8 +61,8 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
           {isWinner ? 'VICTORY' : 'DEFEAT'}
         </span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full text-left text-xs min-w-[600px]">
           <thead className="bg-black/40 text-theme-dim uppercase text-[10px] tracking-widest border-b border-theme-dim">
             <tr>
               <th className="p-3">Unit</th>
@@ -71,8 +71,8 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
               <th className="p-3 text-center">K / D / A</th>
               <th className="p-3 text-center">Net</th>
               <th className="p-3 text-center">GPM / XPM</th>
-              <th className="p-3 text-center">HD</th>
-              <th className="p-3 text-center">TD</th>
+              <th className="p-3 text-center hidden sm:table-cell">HD</th>
+              <th className="p-3 text-center hidden sm:table-cell">TD</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-theme-dim">
@@ -85,7 +85,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                   {p.account_id ? (
                     <button 
                       onClick={() => onPlayerClick(p.account_id!)}
-                      className="font-bold text-theme hover:underline text-left truncate max-w-[150px] uppercase"
+                      className="font-bold text-theme hover:underline text-left truncate max-w-[120px] uppercase block"
                     >
                       {p.personaname || 'Unknown'}
                     </button>
@@ -107,10 +107,10 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                 <td className="p-3 text-center text-theme-dim text-[10px]">
                   {p.gold_per_min} / {p.xp_per_min}
                 </td>
-                <td className="p-3 text-center text-theme-dim">
+                <td className="p-3 text-center text-theme-dim hidden sm:table-cell">
                   {(p.hero_damage / 1000).toFixed(1)}k
                 </td>
-                <td className="p-3 text-center text-theme-dim">
+                <td className="p-3 text-center text-theme-dim hidden sm:table-cell">
                    {p.tower_damage}
                 </td>
               </tr>
@@ -123,43 +123,43 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
 
   return (
     <div className="max-w-5xl mx-auto">
-       <button onClick={onBack} className="mb-6 text-xs text-theme-dim hover:text-theme flex items-center gap-1 uppercase tracking-widest border border-transparent hover:border-theme px-2 py-1 transition-all">
+       <button onClick={onBack} className="mb-4 md:mb-6 text-xs text-theme-dim hover:text-theme flex items-center gap-1 uppercase tracking-widest border border-transparent hover:border-theme px-2 py-1 transition-all">
          <ArrowLeft className="w-3 h-3" /> Return
        </button>
 
-       <div className="flex justify-between items-end mb-6 border-b border-theme pb-4">
+       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 border-b border-theme pb-4 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-theme uppercase glow-text">MATCH_ID: {match.match_id}</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-theme uppercase glow-text">MATCH_ID: {match.match_id}</h1>
             <p className="text-theme-dim text-xs font-mono mt-1">
-               {new Date(match.start_time * 1000).toLocaleString()} // DURATION: {Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2,'0')}
+               {new Date(match.start_time * 1000).toLocaleString()} // DUR: {Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2,'0')}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full md:w-auto">
             <a 
                 href={`https://www.opendota.com/matches/${match.match_id}`} 
                 target="_blank" 
                 rel="noreferrer" 
-                className="px-3 py-1.5 bg-black hover:bg-theme hover:text-black rounded-none text-xs text-theme border border-theme transition-colors uppercase font-bold"
+                className="flex-1 md:flex-none text-center px-3 py-2 md:py-1.5 bg-black hover:bg-theme hover:text-black rounded-none text-xs text-theme border border-theme transition-colors uppercase font-bold"
             >
                 Ext_Link
             </a>
             <button 
                 onClick={handleParse}
-                className="px-3 py-1.5 bg-theme hover:bg-theme-dim text-black rounded-none text-xs font-bold flex items-center gap-1 uppercase"
+                className="flex-1 md:flex-none justify-center px-3 py-2 md:py-1.5 bg-theme hover:bg-theme-dim text-black rounded-none text-xs font-bold flex items-center gap-1 uppercase"
             >
                 <RefreshCw className="w-3 h-3" /> Re_Parse
             </button>
           </div>
        </div>
 
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-center terminal-box p-4">
+       <div className="grid grid-cols-2 gap-0 mb-8 text-center terminal-box p-4">
           <div className="border-r border-theme-dim">
-            <div className="text-theme text-4xl font-bold glow-text">{match.radiant_score}</div>
-            <div className="text-[10px] uppercase text-theme-dim font-bold tracking-[0.2em] mt-1">Radiant_Force</div>
+            <div className="text-theme text-3xl md:text-4xl font-bold glow-text">{match.radiant_score}</div>
+            <div className="text-[10px] uppercase text-theme-dim font-bold tracking-[0.2em] mt-1">Radiant</div>
           </div>
           <div>
-            <div className={`text-4xl font-bold ${!match.radiant_win ? 'text-theme opacity-80' : 'text-theme-dim'}`}>{match.dire_score}</div>
-            <div className="text-[10px] uppercase text-theme-dim font-bold tracking-[0.2em] mt-1">Dire_Force</div>
+            <div className={`text-3xl md:text-4xl font-bold ${!match.radiant_win ? 'text-theme opacity-80' : 'text-theme-dim'}`}>{match.dire_score}</div>
+            <div className="text-[10px] uppercase text-theme-dim font-bold tracking-[0.2em] mt-1">Dire</div>
           </div>
        </div>
 
