@@ -20,7 +20,7 @@ const THEMES = [
   { name: 'Phosphor Green', value: '#4ade80' },
   { name: 'Amber', value: '#fbbf24' },
   { name: 'Crimson', value: '#f87171' },
-  { name: 'Cyber Blue', value: '#60a5fa' },
+  { name: 'Cyber Blue', value: '#8bcbe8' },
   { name: 'Neon Purple', value: '#c084fc' },
 ];
 
