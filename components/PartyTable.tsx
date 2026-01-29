@@ -72,7 +72,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, onSelectParty, selecte
                 >
                   <td className="p-2 md:p-4">
                     {party.id === 'SOLO' ? (
-                       <span className="text-theme-dim italic uppercase text-xs opacity-60 group-hover:opacity-100">[SOLO_UNIT]</span>
+                       <span className="text-theme-dim italic uppercase text-xs group-hover:opacity-100">[SOLO_UNIT]</span>
                     ) : (
                       <div className="flex flex-wrap gap-1 md:gap-2">
                         {party.teammates.map((mate) => (
@@ -98,7 +98,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, onSelectParty, selecte
                   <td className="p-2 md:p-4 text-center text-xs font-mono whitespace-nowrap">
                     <span className="text-theme opacity-100">{party.wins}W</span>
                     <span className="text-theme-dim mx-1">/</span>
-                    <span className="text-theme opacity-60">{party.losses}L</span>
+                    <span className="text-theme opacity-80">{party.losses}L</span>
                   </td>
                   <td className="p-2 md:p-4 text-right">
                     <div className="flex items-center justify-end gap-2 md:gap-3">

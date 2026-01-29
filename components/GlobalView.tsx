@@ -187,11 +187,11 @@ const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
                             <div className="flex-1">
                                 <div className="text-[10px] text-theme-dim mb-1 uppercase tracking-widest">{m.league_name}</div>
                                 <div className="flex items-center gap-4 text-sm">
-                                    <div className={`font-bold uppercase ${m.radiant_win ? 'text-theme glow-text' : 'text-theme opacity-60'}`}>
+                                    <div className={`font-bold uppercase ${m.radiant_win ? 'text-theme glow-text' : 'text-theme opacity-80'}`}>
                                         {m.radiant_name || 'RADIANT'}
                                     </div>
                                     <div className="text-theme-dim text-xs">VS</div>
-                                    <div className={`font-bold uppercase ${!m.radiant_win ? 'text-theme glow-text' : 'text-theme opacity-60'}`}>
+                                    <div className={`font-bold uppercase ${!m.radiant_win ? 'text-theme glow-text' : 'text-theme opacity-80'}`}>
                                         {m.dire_name || 'DIRE'}
                                     </div>
                                 </div>

@@ -38,7 +38,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onSubmit, isLoading }) => {
           value={input}
           onChange={handleChange}
           placeholder="ENTER_ACCOUNT_ID..."
-          className="w-full terminal-input bg-black text-theme border border-theme-dim py-4 px-4 pl-12 transition-all placeholder-theme-dim/50 text-lg shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+          className="w-full terminal-input bg-black text-theme border border-theme-dim py-4 px-4 pl-12 transition-all placeholder-theme-dim/70 text-lg shadow-[0_0_15px_rgba(0,0,0,0.5)]"
           disabled={isLoading}
           autoFocus
           autoComplete="off"
@@ -51,7 +51,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onSubmit, isLoading }) => {
           {isLoading ? 'PROCESSING...' : 'EXECUTE'}
         </button>
       </div>
-      <p className="text-[10px] text-theme-dim mt-2 text-center uppercase tracking-widest opacity-70">
+      <p className="text-[10px] text-theme-dim mt-2 text-center uppercase tracking-widest opacity-80">
         EXAMPLE_TARGET: 88470560
       </p>
     </form>
