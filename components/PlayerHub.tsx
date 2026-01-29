@@ -285,7 +285,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                   return (
                                     <tr key={h.hero_id} className="hover:bg-white/5 transition-colors">
                                         <td className="p-3 flex items-center gap-3">
-                                            <img src={getHeroImageUrl(h.hero_id)} className="w-8 h-8 border border-theme-dim opacity-80" alt="" />
+                                            <img src={getHeroImageUrl(h.hero_id)} className="w-12 h-auto border border-theme-dim opacity-80" alt="" />
                                             <span className="font-bold text-theme uppercase truncate max-w-[150px]">{getHeroName(h.hero_id)}</span>
                                         </td>
                                         <td className="p-3 text-center text-theme-dim font-mono">{h.games}</td>
