@@ -24,6 +24,13 @@ const THEMES = [
   { name: 'Neon Purple', value: '#c084fc' },
 ];
 
+const ASCII_ART = `██████╗  ██████╗ ████████╗ █████╗     ████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗
+██╔══██╗██╔═══██╗╚══██╔══╝██╔══██╗    ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║
+██║  ██║██║   ██║   ██║   ███████║       ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║
+██║  ██║██║   ██║   ██║   ██╔══██║       ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║
+██████╔╝╚██████╔╝   ██║   ██║  ██║       ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
+╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝`;
+
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>({ view: 'HOME', params: {} });
   const [appReady, setAppReady] = useState(false);
@@ -65,7 +72,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen relative font-mono text-sm">
+    <div className="min-h-screen relative font-mono text-sm flex flex-col">
       {/* CRT Overlays */}
       <div className="scanlines pointer-events-none" />
       <div className="crt-overlay pointer-events-none" />
@@ -143,17 +150,12 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Router */}
-      <main className="container mx-auto px-4 py-8 relative z-10">
+      <main className="container mx-auto px-4 py-8 relative z-10 flex-grow">
         
         {state.view === 'HOME' && (
            <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
               <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none overflow-x-hidden">
-{`██████╗  ██████╗ ████████╗ █████╗     ████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗     
-██╔══██╗██╔═══██╗╚══██╔══╝██╔══██╗    ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║     
-██║  ██║██║   ██║   ██║   ███████║       ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║     
-██║  ██║██║   ██║   ██║   ██╔══██║       ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║     
-██████╔╝╚██████╔╝   ██║   ██║  ██║       ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
-╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝`}
+                {ASCII_ART}
               </pre>
               <div className="h-px w-32 bg-theme mb-8 opacity-50"></div>
               <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
