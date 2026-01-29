@@ -202,7 +202,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="border-t border-theme-dim py-8 text-center text-theme-dim text-[10px] md:text-xs uppercase tracking-widest opacity-50 relative z-10 px-4">
-         <p>SYSTEM STATUS: ONLINE // DATA SOURCE: OPENDOTA API</p>
+         <p>SYSTEM STATUS: ONLINE // DATA SOURCE: OPENDOTA  API</p>
       </footer>
     </div>
   );
