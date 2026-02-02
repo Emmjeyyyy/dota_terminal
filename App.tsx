@@ -51,7 +51,13 @@ const App: React.FC = () => {
   };
 
   const navigateToMatch = (id: number) => {
-    setState({ view: 'MATCH', params: { matchId: id } });
+    setState(prev => ({ 
+      view: 'MATCH', 
+      params: { 
+        ...prev.params,
+        matchId: id 
+      } 
+    }));
   };
 
   const navigateToGlobal = () => {
@@ -159,6 +165,7 @@ const App: React.FC = () => {
                 {ASCII_ART}
               </pre>
               <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
+                ACCESSING DOTA DATABASE...<br/>
                 ENTER ACCOUNT ID BELOW.
               </p>
               
