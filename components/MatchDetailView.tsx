@@ -106,10 +106,10 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
             {/* GPM/XPM - Visible on Group Hover or just small */}
             <div className="grid grid-cols-2 gap-1 text-[9px] text-theme-dim font-mono text-center border-t border-white/10 pt-2 opacity-60 group-hover:opacity-100 transition-opacity">
                <div>
-                  <span className="text-white">{player.gold_per_min}</span> G
+                  <span className="text-white">{player.gold_per_min}</span> GPM
                </div>
                <div>
-                  <span className="text-white">{player.xp_per_min}</span> X
+                  <span className="text-white">{player.xp_per_min}</span> XPM
                </div>
             </div>
          </div>
