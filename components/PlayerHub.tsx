@@ -216,7 +216,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                             let totalGamesGM = 0;
                             let totalWinsGM = 0;
                             if (counts.game_mode) {
-                                Object.values(counts.game_mode).forEach(c => { totalGamesGM += c.games; totalWinsGM += c.win; });
+                                Object.values(counts.game_mode).forEach((c: CountMetric) => { totalGamesGM += c.games; totalWinsGM += c.win; });
                             }
                             
                             const other = {
