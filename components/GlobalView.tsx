@@ -127,15 +127,6 @@ const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
                                  <img src={attr.icon} alt={attr.label} className="w-full h-full object-contain" />
                               </button>
                            ))}
-                           
-                           {selectedAttrs.length > 0 && (
-                              <button 
-                                 onClick={() => setSelectedAttrs([])}
-                                 className="ml-2 px-2 py-1 text-[10px] uppercase text-theme-dim hover:text-theme border border-theme-dim hover:border-theme flex items-center gap-1 transition-all"
-                              >
-                                 <X className="w-3 h-3" /> Clear
-                              </button>
-                           )}
                         </div>
                      </div>
 
