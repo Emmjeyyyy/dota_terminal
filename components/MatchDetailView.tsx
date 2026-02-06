@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { MatchDetail, MatchPlayerDetail } from '../types';
 import { getMatchDetails, requestMatchParse } from '../services/api';
 import { getHeroImageUrl } from '../services/heroService';
-import { Loader2, RefreshCw, ArrowLeft, Terminal, Trophy, Swords } from 'lucide-react';
+import { Loader2, RefreshCw, ArrowLeft, Trophy, Swords } from 'lucide-react';
 
 interface MatchDetailViewProps {
   matchId: number;
@@ -10,24 +10,67 @@ interface MatchDetailViewProps {
   onBack: () => void;
 }
 
+// Extended interface for properties returned by API but not in shared types
+interface ExtendedPlayer extends MatchPlayerDetail {
+  level?: number;
+  last_hits?: number;
+  denies?: number;
+  net_worth?: number;
+  rank_tier?: number;
+  total_gold?: number;
+  hero_variant?: number;
+}
+
 const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClick, onBack }) => {
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [itemMap, setItemMap] = useState<Record<number, string>>({});
 
   useEffect(() => {
     let isMounted = true;
-    getMatchDetails(matchId).then(data => {
-      if (isMounted) {
-        setMatch(data);
-        setLoading(false);
-      }
-    });
+    
+    const fetchData = async () => {
+        const matchData = await getMatchDetails(matchId);
+        if (isMounted) {
+            setMatch(matchData);
+            setLoading(false);
+        }
+    };
+
+    // Fetch Item Constants for mapping IDs to Images
+    fetch('https://api.opendota.com/api/constants/items')
+        .then(res => res.json())
+        .then(data => {
+            if (!isMounted) return;
+            const map: Record<number, string> = {};
+            Object.values(data).forEach((item: any) => {
+                if(item.id) map[item.id] = item.img;
+            });
+            setItemMap(map);
+        })
+        .catch(err => console.error("Failed to fetch item constants", err));
+
+    fetchData();
     return () => { isMounted = false; };
   }, [matchId]);
 
   const handleParse = () => {
     requestMatchParse(matchId);
     alert("PARSE_REQUEST_SENT >> AWAITING_PROCESSING");
+  };
+
+  const getItemUrl = (itemId: number) => {
+      if (!itemId || !itemMap[itemId]) return null;
+      return `https://cdn.steamstatic.com${itemMap[itemId]}`;
+  };
+
+  const getRankName = (rank_tier?: number) => {
+    if (!rank_tier) return 'Uncalibrated';
+    const rank = Math.floor(rank_tier / 10);
+    const stars = rank_tier % 10;
+    const rankNames = ['Herald', 'Guardian', 'Crusader', 'Archon', 'Legend', 'Ancient', 'Divine', 'Immortal'];
+    const name = rankNames[rank - 1] || 'Unknown';
+    return `${name} [${stars}]`;
   };
 
   if (loading) {
@@ -48,8 +91,8 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
     );
   }
 
-  const radiantPlayers = match.players.filter(p => p.player_slot < 128);
-  const direPlayers = match.players.filter(p => p.player_slot >= 128);
+  const radiantPlayers = match.players.filter(p => p.player_slot < 128) as ExtendedPlayer[];
+  const direPlayers = match.players.filter(p => p.player_slot >= 128) as ExtendedPlayer[];
 
   const HeroCard: React.FC<{ player: MatchPlayerDetail; isRadiant: boolean }> = ({ player, isRadiant }) => {
     const netWorth = ((player.gold_per_min * (match.duration / 60)) / 1000).toFixed(1);
@@ -120,6 +163,140 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
     );
   };
 
+  const renderTeamOverview = (teamPlayers: ExtendedPlayer[], isRadiant: boolean) => (
+    <div className="terminal-box overflow-hidden mb-8">
+       {/* Header */}
+       <div className={`px-4 py-2 border-b border-theme-dim/50 flex items-center justify-between ${isRadiant ? 'bg-green-900/10' : 'bg-red-900/10'}`}>
+          <h3 className={`font-bold uppercase tracking-widest text-sm flex items-center gap-2 ${isRadiant ? 'text-green-400' : 'text-red-400'}`}>
+             <div className={`w-2 h-2 rounded-full ${isRadiant ? 'bg-green-400' : 'bg-red-400'}`} />
+             {isRadiant ? 'Radiant — Overview' : 'Dire — Overview'}
+          </h3>
+       </div>
+
+       {/* Table Header */}
+       <div className="overflow-x-auto custom-scrollbar">
+           <div className="min-w-[900px]">
+               <div className="flex items-center text-[10px] uppercase text-theme-dim bg-black/40 border-b border-theme-dim/30 py-2 px-4 font-bold tracking-wider">
+                  <div className="w-52 shrink-0">Player</div>
+                  <div className="w-12 text-center shrink-0">Facet</div>
+                  <div className="w-12 text-center shrink-0">LVL</div>
+                  <div className="w-24 text-center shrink-0">KDA</div>
+                  <div className="w-20 text-center shrink-0">LH/DN</div>
+                  <div className="w-20 text-right shrink-0">NET</div>
+                  <div className="w-24 text-center shrink-0">GPM/XPM</div>
+                  <div className="w-16 text-right shrink-0">HD</div>
+                  <div className="w-16 text-right shrink-0">TD</div>
+                  <div className="flex-1 pl-6">Items</div>
+               </div>
+
+               {/* Rows */}
+               <div className="divide-y divide-theme-dim/20">
+                  {teamPlayers.map((p) => {
+                      const netWorth = p.net_worth || p.total_gold || (p.gold_per_min * match.duration / 60);
+                      const itemIds = [p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5];
+                      
+                      return (
+                          <div key={p.player_slot} className="flex items-center py-2 px-4 hover:bg-white/5 transition-colors group">
+                              {/* Player Identity */}
+                              <div className="w-52 shrink-0 flex items-center gap-3 cursor-pointer" onClick={() => p.account_id && onPlayerClick(p.account_id)}>
+                                 {/* Hero Portrait Block */}
+                                 <div className="relative w-14 h-8 shrink-0 bg-black shadow-[0_0_4px_rgba(0,0,0,0.6)]">
+                                     {/* Hero Image */}
+                                     <img 
+                                         src={getHeroImageUrl(p.hero_id)} 
+                                         alt="" 
+                                         className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" 
+                                     />
+                                 </div>
+
+                                 {/* Text Info */}
+                                 <div className="flex flex-col min-w-0 pr-2">
+                                     <div className={`text-xs font-bold truncate leading-none mb-1 ${p.account_id ? 'text-theme group-hover:underline' : 'text-theme-dim italic'}`}>
+                                         {p.personaname || 'Anonymous'}
+                                     </div>
+                                     <div className="flex items-center gap-1.5">
+                                         {p.rank_tier ? (
+                                             <span className="text-[10px] text-theme-dim font-mono leading-none flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-theme-dim/40"></span>
+                                                {getRankName(p.rank_tier)}
+                                             </span>
+                                         ) : (
+                                             <span className="text-[10px] text-theme-dim/50 font-mono leading-none">-</span>
+                                         )}
+                                     </div>
+                                 </div>
+                              </div>
+                              
+                              {/* Facet Column */}
+                              <div className="w-12 text-center shrink-0 font-mono text-white text-xs text-theme-dim">
+                                  {p.hero_variant || '-'}
+                              </div>
+
+                              {/* Stats */}
+                              <div className="w-12 text-center shrink-0 font-mono text-white text-xs">{p.level || '-'}</div>
+                              
+                              <div className="w-24 text-center shrink-0 font-mono text-xs">
+                                  <span className="text-green-400 font-bold">{p.kills}</span>
+                                  <span className="text-theme-dim mx-1">/</span>
+                                  <span className="text-red-400 font-bold">{p.deaths}</span>
+                                  <span className="text-theme-dim mx-1">/</span>
+                                  <span className="text-white/70">{p.assists}</span>
+                              </div>
+
+                              <div className="w-20 text-center shrink-0 font-mono text-xs text-theme-dim">
+                                  <span className="text-white">{p.last_hits || 0}</span>
+                                  <span className="mx-1">/</span>
+                                  <span>{p.denies || 0}</span>
+                              </div>
+
+                              <div className="w-20 text-right shrink-0 font-mono text-xs text-[#fbbf24]">
+                                  {netWorth ? (netWorth / 1000).toFixed(1) : '0.0'}k
+                              </div>
+
+                              <div className="w-24 text-center shrink-0 font-mono text-xs text-theme-dim">
+                                  <span className="text-white">{p.gold_per_min}</span>
+                                  <span className="mx-1 text-theme-dim">/</span>
+                                  <span className="text-white">{p.xp_per_min}</span>
+                              </div>
+
+                              <div className="w-16 text-right shrink-0 font-mono text-xs text-white/80">
+                                  {p.hero_damage ? (p.hero_damage / 1000).toFixed(1) + 'k' : '-'}
+                              </div>
+
+                              <div className="w-16 text-right shrink-0 font-mono text-xs text-white/60">
+                                  {p.tower_damage || '-'}
+                              </div>
+
+                              {/* Items */}
+                              <div className="flex-1 pl-6 flex items-center gap-1">
+                                  {itemIds.map((itemId, i) => {
+                                      const url = getItemUrl(itemId);
+                                      return (
+                                          <div key={i} className="w-8 h-6 bg-black/50 border border-theme-dim/30 relative">
+                                              {url && <img src={url} alt="" className="w-full h-full object-cover" title={`Item ${itemId}`} />}
+                                          </div>
+                                      );
+                                  })}
+                                  
+                                  {/* Neutral Item Separator */}
+                                  {p.neutral_item && (
+                                      <>
+                                          <div className="w-px h-6 bg-theme-dim/30 mx-1"></div>
+                                          <div className="w-6 h-6 rounded-full overflow-hidden border border-theme-dim/50 relative shadow-[0_0_5px_rgba(255,255,255,0.1)]">
+                                             {getItemUrl(p.neutral_item) && <img src={getItemUrl(p.neutral_item)!} alt="" className="w-full h-full object-cover" />}
+                                          </div>
+                                      </>
+                                  )}
+                              </div>
+                          </div>
+                      );
+                  })}
+               </div>
+           </div>
+       </div>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-[1920px] mx-auto p-2 sm:p-4 animate-fade-in">
        {/* Navigation Header */}
@@ -174,7 +351,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
        </div>
 
        {/* Team Split Layout - Side by Side on XL */}
-       <div className="flex flex-col xl:flex-row gap-8 xl:gap-6">
+       <div className="flex flex-col xl:flex-row gap-8 xl:gap-6 mb-12">
           
           {/* Radiant Side (Left) */}
           <div className="flex-1">
@@ -191,7 +368,6 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                         <HeroCard player={p} isRadiant={true} />
                       </div>
                   ))}
-                  {/* Fill empty slots if less than 5 */}
                   {[...Array(Math.max(0, 5 - radiantPlayers.length))].map((_, i) => (
                       <div key={`empty-r-${i}`} className="h-[28rem] bg-black/20 border border-theme-dim/10"></div>
                   ))}
@@ -213,13 +389,17 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                         <HeroCard player={p} isRadiant={false} />
                       </div>
                   ))}
-                   {/* Fill empty slots if less than 5 */}
                    {[...Array(Math.max(0, 5 - direPlayers.length))].map((_, i) => (
                       <div key={`empty-d-${i}`} className="h-[28rem] bg-black/20 border border-theme-dim/10"></div>
                   ))}
               </div>
           </div>
+       </div>
 
+       {/* Team Overview Section */}
+       <div className="space-y-6">
+          {renderTeamOverview(radiantPlayers, true)}
+          {renderTeamOverview(direPlayers, false)}
        </div>
     </div>
   );
