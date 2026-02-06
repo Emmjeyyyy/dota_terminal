@@ -11,31 +11,54 @@ import {
   PlayerCounts
 } from '../types';
 
-// Simple rate limiter state
+// Queue-based rate limiter to ensure sequential requests
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 150; // OpenDota free tier is ~60/min, but bursting is sometimes okay. Keeping it safe.
+const MIN_REQUEST_INTERVAL = 250; // OpenDota free tier is ~60/min. 250ms spacing ensures we don't burst too hard.
+let requestQueue = Promise.resolve();
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const rateLimitedFetch = async (url: string): Promise<Response> => {
-  const now = Date.now();
-  const timeSinceLast = now - lastRequestTime;
-  
-  if (timeSinceLast < MIN_REQUEST_INTERVAL) {
-    await wait(MIN_REQUEST_INTERVAL - timeSinceLast);
-  }
-  
-  lastRequestTime = Date.now();
-  const response = await fetch(url);
-  
-  // Handle 429 specifically
-  if (response.status === 429) {
-    console.warn("Rate limit hit, backing off...");
-    await wait(5000); // 5s penalty box
-    return rateLimitedFetch(url); // Retry
-  }
-  
-  return response;
+const rateLimitedFetch = (url: string, options?: RequestInit): Promise<Response> => {
+  // Wrap the fetch operation in a promise that we can control via the queue
+  return new Promise((resolve, reject) => {
+    // Chain this request to the end of the global queue
+    requestQueue = requestQueue.then(async () => {
+      const now = Date.now();
+      const timeSinceLast = now - lastRequestTime;
+      
+      // Enforce the minimum interval
+      if (timeSinceLast < MIN_REQUEST_INTERVAL) {
+        await wait(MIN_REQUEST_INTERVAL - timeSinceLast);
+      }
+      
+      // Recursive function to handle 429 retries
+      const executeFetch = async (): Promise<void> => {
+        try {
+            const res = await fetch(url, options);
+            lastRequestTime = Date.now();
+            
+            // Handle Rate Limiting (429) by waiting and retrying
+            if (res.status === 429) {
+                console.warn(`Rate limit 429 hit on ${url}. Backing off 5s...`);
+                await wait(5000); 
+                return executeFetch();
+            }
+            
+            resolve(res);
+        } catch (e) {
+            // Network errors (like Failed to fetch) are passed to the caller
+            console.error(`Network error requesting ${url}:`, e);
+            reject(e);
+        }
+      };
+
+      await executeFetch();
+    }).catch((e) => {
+        // This catch handles critical errors in the queue logic itself
+        // to ensure the queue chain isn't permanently broken.
+        console.error("Queue processing error:", e);
+    });
+  });
 };
 
 export const getPlayerProfile = async (accountId: number): Promise<PlayerProfile | null> => {
@@ -139,7 +162,7 @@ export const getPlayerCounts = async (accountId: number): Promise<PlayerCounts |
 
 export const requestMatchParse = async (matchId: number): Promise<void> => {
   try {
-    await fetch(`${API_BASE_URL}/request/${matchId}`, { method: 'POST' });
+    await rateLimitedFetch(`${API_BASE_URL}/request/${matchId}`, { method: 'POST' });
   } catch (e) {
     console.error("Error requesting parse:", e);
   }

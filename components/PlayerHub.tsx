@@ -29,18 +29,23 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
     let mounted = true;
     const fetchData = async () => {
       setLoading(true);
-      const [p, w, m, c] = await Promise.all([
-        getPlayerProfile(accountId),
-        getPlayerWL(accountId),
-        getRecentMatches(accountId),
-        getPlayerCounts(accountId)
-      ]);
-      if (mounted) {
-        setProfile(p);
-        setWl(w);
-        setMatches(m);
-        setCounts(c);
-        setLoading(false);
+      try {
+        const [p, w, m, c] = await Promise.all([
+            getPlayerProfile(accountId),
+            getPlayerWL(accountId),
+            getRecentMatches(accountId),
+            getPlayerCounts(accountId)
+        ]);
+        if (mounted) {
+            setProfile(p);
+            setWl(w);
+            setMatches(m);
+            setCounts(c);
+        }
+      } catch (e) {
+        console.error("Failed to load player data", e);
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
     fetchData();
@@ -256,8 +261,9 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                 </div>
                             );
                         })() : (
-                            <div className="py-8 text-center text-theme-dim animate-pulse">
-                                Loading Detail Stats...
+                            <div className="py-8 text-center text-theme-dim flex flex-col items-center justify-center border border-dashed border-theme-dim/30">
+                                <span className="uppercase text-[10px] mb-1">Detailed Stats Unavailable</span>
+                                <span className="text-[9px] opacity-50">Data fetch failed or empty</span>
                             </div>
                         )}
                         

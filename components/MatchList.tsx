@@ -33,7 +33,7 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
                   />
                </div>
                <div className="flex flex-col">
-                  <div className={`font-bold text-xs uppercase tracking-wider ${won ? 'text-theme' : 'text-theme opacity-80'}`}>
+                  <div className={`font-bold text-xs uppercase tracking-wider ${won ? 'text-theme' : 'text-red-400 opacity-80'}`}>
                     {won ? '>> VICTORY' : '>> DEFEAT'}
                   </div>
                   <div className="text-[10px] text-theme-dim font-mono">
@@ -41,7 +41,7 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
                   </div>
                </div>
             </div>
-            
+             
             <div className="text-right flex items-center gap-2 sm:gap-6">
                <div className="flex flex-col sm:items-end">
                  <div className="text-[9px] text-theme-dim uppercase hidden sm:block">Performance</div>
