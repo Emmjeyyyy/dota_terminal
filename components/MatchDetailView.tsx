@@ -19,6 +19,8 @@ interface ExtendedPlayer extends MatchPlayerDetail {
   rank_tier?: number;
   total_gold?: number;
   hero_variant?: number;
+  aghanims_scepter?: number;
+  aghanims_shard?: number;
 }
 
 const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClick, onBack }) => {
@@ -285,27 +287,46 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                                   {p.tower_damage || '-'}
                               </div>
 
-                              {/* Items */}
-                              <div className="flex-1 pl-6 flex items-center gap-1">
-                                  {itemIds.map((itemId, i) => {
-                                      const url = getItemUrl(itemId);
-                                      if (!url) return null;
-                                      return (
-                                          <div key={i} className="w-8 h-6 bg-black/50 border border-theme-dim/30 relative">
-                                              <img src={url} alt="" className="w-full h-full object-cover" title={`Item ${itemId}`} />
-                                          </div>
-                                      );
-                                  })}
+                              {/* Items & Aghanim */}
+                              <div className="flex-1 pl-6 flex items-center justify-between gap-2 pr-2">
+                                  {/* Main Inventory */}
+                                  <div className="flex items-center gap-1">
+                                      {itemIds.map((itemId, i) => {
+                                          const url = getItemUrl(itemId);
+                                          if (!url) return null;
+                                          return (
+                                              <div key={i} className="w-8 h-6 bg-black/50 border border-theme-dim/30 relative">
+                                                  <img src={url} alt="" className="w-full h-full object-cover" title={`Item ${itemId}`} />
+                                              </div>
+                                          );
+                                      })}
+                                  </div>
                                   
-                                  {/* Neutral Item Separator */}
-                                  {p.neutral_item && getItemUrl(p.neutral_item) && (
-                                      <>
-                                          <div className="w-px h-6 bg-theme-dim/30 mx-1"></div>
-                                          <div className="w-6 h-6 rounded-full overflow-hidden border border-theme-dim/50 relative shadow-[0_0_5px_rgba(255,255,255,0.1)]">
-                                             <img src={getItemUrl(p.neutral_item)!} alt="" className="w-full h-full object-cover" />
+                                  {/* Right side: Neutral + Aghanim */}
+                                  <div className="flex items-center gap-3">
+                                      {/* Neutral Item */}
+                                      {p.neutral_item && getItemUrl(p.neutral_item) && (
+                                          <div className="w-6 h-6 rounded-full overflow-hidden border border-theme-dim/50 relative shadow-[0_0_5px_rgba(255,255,255,0.1)] shrink-0">
+                                              <img src={getItemUrl(p.neutral_item)!} alt="" className="w-full h-full object-cover" title="Neutral Item" />
                                           </div>
-                                      </>
-                                  )}
+                                      )}
+
+                                      {/* Aghanim Upgrades */}
+                                      <div className="flex flex-col gap-0.5 shrink-0">
+                                          <img 
+                                            src={p.aghanims_scepter ? 'https://www.opendota.com/assets/images/dota2/scepter_1.png' : 'https://www.opendota.com/assets/images/dota2/scepter_0.png'} 
+                                            className="w-4 h-auto" 
+                                            alt="Scepter"
+                                            title={p.aghanims_scepter ? "Aghanim's Scepter (Owned)" : "Aghanim's Scepter (Not Owned)"}
+                                          />
+                                          <img 
+                                            src={p.aghanims_shard ? 'https://www.opendota.com/assets/images/dota2/shard_1.png' : 'https://www.opendota.com/assets/images/dota2/shard_0.png'} 
+                                            className="w-4 h-auto" 
+                                            alt="Shard"
+                                            title={p.aghanims_shard ? "Aghanim's Shard (Owned)" : "Aghanim's Shard (Not Owned)"}
+                                          />
+                                      </div>
+                                  </div>
                               </div>
                           </div>
                       );
