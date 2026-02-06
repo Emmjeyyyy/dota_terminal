@@ -26,7 +26,7 @@ const THEMES = [
 
 const ASCII_ART = `██████╗  ██████╗ ████████╗ █████╗     ████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗
 ██╔══██╗██╔═══██╗╚══██╔══╝██╔══██╗    ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║
-██║  ██║██║   ██║   ██║   ███████║       ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║
+██║  ██║██║   ██║   ███████║       ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║
 ██║  ██║██║   ██║   ██║   ██╔══██║       ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║
 ██████╔╝╚██████╔╝   ██║   ██║  ██║       ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
 ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝`;
@@ -133,14 +133,14 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3 sm:gap-6">
              <button 
                 onClick={navigateToGlobal} 
-                className={`flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold ${state.view === 'GLOBAL' ? 'text-theme drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]' : 'text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.4)]'}`}
+                className={`flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold ${state.view === 'GLOBAL' ? 'text-theme drop-shadow-[0_0_8px_color-mix(in_srgb,var(--theme-color),transparent_40%)]' : 'text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_color-mix(in_srgb,var(--theme-color),transparent_60%)]'}`}
              >
                 <Globe className="w-4 h-4" /> <span className="hidden sm:inline">[GLOBAL_DATA]</span><span className="sm:hidden">[DATA]</span>
              </button>
              {state.view !== 'HOME' && (
                <button 
                   onClick={goHome}
-                  className="text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_rgba(74,222,128,0.4)] flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold"
+                  className="text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_color-mix(in_srgb,var(--theme-color),transparent_60%)] flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold"
                >
                  <Search className="w-4 h-4" /> <span className="hidden sm:inline">[SEARCH]</span>
                </button>
