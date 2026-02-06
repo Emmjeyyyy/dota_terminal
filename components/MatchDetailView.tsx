@@ -25,6 +25,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [itemMap, setItemMap] = useState<Record<number, string>>({});
+  const [heroConstants, setHeroConstants] = useState<Record<string, any>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -37,18 +38,23 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
         }
     };
 
-    // Fetch Item Constants for mapping IDs to Images
-    fetch('https://api.opendota.com/api/constants/items')
-        .then(res => res.json())
-        .then(data => {
-            if (!isMounted) return;
-            const map: Record<number, string> = {};
-            Object.values(data).forEach((item: any) => {
-                if(item.id) map[item.id] = item.img;
-            });
-            setItemMap(map);
-        })
-        .catch(err => console.error("Failed to fetch item constants", err));
+    // Parallel fetches for constants
+    Promise.all([
+        fetch('https://api.opendota.com/api/constants/items').then(res => res.json()),
+        fetch('https://api.opendota.com/api/constants/heroes').then(res => res.json())
+    ]).then(([itemsData, heroesData]) => {
+        if (!isMounted) return;
+        
+        // Process Items
+        const map: Record<number, string> = {};
+        Object.values(itemsData).forEach((item: any) => {
+            if(item.id) map[item.id] = item.img;
+        });
+        setItemMap(map);
+
+        // Process Heroes (Store fully for facets)
+        setHeroConstants(heroesData);
+    }).catch(err => console.error("Failed to fetch constants", err));
 
     fetchData();
     return () => { isMounted = false; };
@@ -62,6 +68,18 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
   const getItemUrl = (itemId: number) => {
       if (!itemId || !itemMap[itemId]) return null;
       return `https://cdn.steamstatic.com${itemMap[itemId]}`;
+  };
+
+  const getFacetIconUrl = (heroId: number, variant?: number) => {
+    if (!variant || !heroConstants) return null;
+    const hero = heroConstants[heroId.toString()];
+    if (!hero || !hero.facets) return null;
+    // Facet index is roughly variant - 1
+    const facet = hero.facets[variant - 1];
+    if (facet && facet.icon) {
+        return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/facets/${facet.icon}.png`;
+    }
+    return null;
   };
 
   const getRankName = (rank_tier?: number) => {
@@ -271,19 +289,20 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                               <div className="flex-1 pl-6 flex items-center gap-1">
                                   {itemIds.map((itemId, i) => {
                                       const url = getItemUrl(itemId);
+                                      if (!url) return null;
                                       return (
                                           <div key={i} className="w-8 h-6 bg-black/50 border border-theme-dim/30 relative">
-                                              {url && <img src={url} alt="" className="w-full h-full object-cover" title={`Item ${itemId}`} />}
+                                              <img src={url} alt="" className="w-full h-full object-cover" title={`Item ${itemId}`} />
                                           </div>
                                       );
                                   })}
                                   
                                   {/* Neutral Item Separator */}
-                                  {p.neutral_item && (
+                                  {p.neutral_item && getItemUrl(p.neutral_item) && (
                                       <>
                                           <div className="w-px h-6 bg-theme-dim/30 mx-1"></div>
                                           <div className="w-6 h-6 rounded-full overflow-hidden border border-theme-dim/50 relative shadow-[0_0_5px_rgba(255,255,255,0.1)]">
-                                             {getItemUrl(p.neutral_item) && <img src={getItemUrl(p.neutral_item)!} alt="" className="w-full h-full object-cover" />}
+                                             <img src={getItemUrl(p.neutral_item)!} alt="" className="w-full h-full object-cover" />
                                           </div>
                                       </>
                                   )}
