@@ -196,7 +196,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
 
        {/* Table Header */}
        <div className="overflow-x-auto custom-scrollbar">
-           <div className="min-w-[900px]">
+           <div className="min-w-[1200px]">
                <div className="flex items-center text-[10px] uppercase text-theme-dim bg-black/40 border-b border-theme-dim/30 py-2 px-4 font-bold tracking-wider">
                   <div className="w-52 shrink-0">Player</div>
                   <div className="w-12 text-center shrink-0">Facet</div>
@@ -207,9 +207,10 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                   <div className="w-24 text-center shrink-0">GPM/XPM</div>
                   <div className="w-16 text-right shrink-0">HD</div>
                   <div className="w-16 text-right shrink-0">TD</div>
-                  <div className="flex-1 pl-6">Items</div>
+                  <div className="w-[240px] pl-6 shrink-0">Items</div>
                   <div className="w-12 text-center shrink-0"></div> {/* Neutral */}
                   <div className="w-10 text-center shrink-0"></div> {/* Aghs */}
+                  <div className="flex-1"></div>
                </div>
 
                {/* Rows */}
@@ -291,7 +292,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                               </div>
 
                               {/* Main Inventory */}
-                              <div className="flex-1 pl-6 flex items-center gap-1">
+                              <div className="w-[240px] pl-6 shrink-0 flex items-center gap-1">
                                   {itemIds.map((itemId, i) => {
                                       const url = getItemUrl(itemId);
                                       if (!url) return null;
@@ -335,6 +336,8 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                                     title={p.aghanims_shard ? "Aghanim's Shard (Owned)" : "Aghanim's Shard (Not Owned)"}
                                   />
                               </div>
+
+                              <div className="flex-1"></div>
                           </div>
                       );
                   })}
