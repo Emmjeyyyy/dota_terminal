@@ -252,8 +252,22 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                               </div>
                               
                               {/* Facet Column */}
-                              <div className="w-12 text-center shrink-0 font-mono text-white text-xs text-theme-dim">
-                                  {p.hero_variant || '-'}
+                              <div className="w-12 text-center shrink-0 flex justify-center items-center">
+                                  {(() => {
+                                      const facetUrl = getFacetIconUrl(p.hero_id, p.hero_variant);
+                                      if (facetUrl) {
+                                          return (
+                                            <div className="w-6 h-6 p-0.5 bg-black/30 border border-theme-dim/30 rounded-sm" title={`Facet ${p.hero_variant}`}>
+                                                <img 
+                                                    src={facetUrl} 
+                                                    alt="" 
+                                                    className="w-full h-full object-contain drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]"
+                                                />
+                                            </div>
+                                          );
+                                      }
+                                      return <span className="font-mono text-xs text-theme-dim">{p.hero_variant || '-'}</span>;
+                                  })()}
                               </div>
 
                               {/* Stats */}
