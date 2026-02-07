@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { MatchDetail, MatchPlayerDetail } from '../types';
 import { getMatchDetails, requestMatchParse } from '../services/api';
 import { getHeroImageUrl } from '../services/heroService';
@@ -62,6 +62,27 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
     fetchData();
     return () => { isMounted = false; };
   }, [matchId]);
+
+  // Compute party indicators
+  const partyMapping = useMemo(() => {
+      if (!match) return new Map<number, string>();
+      const mapping = new Map<number, string>();
+      let currentRoman = 0;
+      const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+      
+      const seenParties = new Set<number>();
+      
+      match.players.forEach(p => {
+          if (p.party_id && (p.party_size || 0) > 1) {
+              if (!seenParties.has(p.party_id)) {
+                  seenParties.add(p.party_id);
+                  mapping.set(p.party_id, romans[currentRoman % romans.length]);
+                  currentRoman++;
+              }
+          }
+      });
+      return mapping;
+  }, [match]);
 
   const handleParse = () => {
     requestMatchParse(matchId);
@@ -218,11 +239,21 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                   {teamPlayers.map((p) => {
                       const netWorth = p.net_worth || p.total_gold || (p.gold_per_min * match.duration / 60);
                       const itemIds = [p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5];
+                      const partyRoman = (p.party_id && (p.party_size || 0) > 1) ? partyMapping.get(p.party_id) : null;
                       
                       return (
                           <div key={p.player_slot} className="flex items-center py-2 px-4 hover:bg-white/5 transition-colors group">
                               {/* Player Identity */}
-                              <div className="w-52 shrink-0 flex items-center gap-3 cursor-pointer" onClick={() => p.account_id && onPlayerClick(p.account_id)}>
+                              <div className="w-52 shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => p.account_id && onPlayerClick(p.account_id)}>
+                                 {/* Party Indicator Slot */}
+                                 <div className="w-4 shrink-0 flex justify-center">
+                                    {partyRoman && (
+                                        <span className="text-[10px] font-bold text-theme-dim/70 font-serif italic -rotate-6 select-none" title={`Party ID: ${p.party_id}`}>
+                                            {partyRoman}
+                                        </span>
+                                    )}
+                                 </div>
+
                                  {/* Hero Portrait Block */}
                                  <div className="relative w-14 h-8 shrink-0 bg-black shadow-[0_0_4px_rgba(0,0,0,0.6)]">
                                      {/* Hero Image */}

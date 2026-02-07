@@ -54,6 +54,8 @@ export interface MatchPlayerDetail {
   backpack_1: number;
   backpack_2: number;
   neutral_item: number;
+  party_id?: number;
+  party_size?: number;
 }
 
 export interface MatchDetail {
