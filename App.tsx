@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import PlayerForm from './components/PlayerForm';
 import PlayerHub from './components/PlayerHub';
 import MatchDetailView from './components/MatchDetailView';
-import GlobalView from './components/GlobalView';
-import { Globe, Search, Loader2, Settings, X, Terminal } from 'lucide-react';
+import HeroesView from './components/HeroesView';
+import ProMatchesView from './components/ProMatchesView';
+import { Search, Loader2, Settings, X, Terminal, Swords, Gamepad2 } from 'lucide-react';
 import { ensureHeroData } from './services/heroService';
 
-type ViewType = 'HOME' | 'PLAYER' | 'MATCH' | 'GLOBAL';
+type ViewType = 'HOME' | 'PLAYER' | 'MATCH' | 'HEROES' | 'PRO_CIRCUIT';
 
 interface AppState {
   view: ViewType;
@@ -60,8 +61,12 @@ const App: React.FC = () => {
     }));
   };
 
-  const navigateToGlobal = () => {
-    setState({ view: 'GLOBAL', params: {} });
+  const navigateToHeroes = () => {
+    setState({ view: 'HEROES', params: {} });
+  };
+
+  const navigateToProCircuit = () => {
+    setState({ view: 'PRO_CIRCUIT', params: {} });
   };
 
   const goHome = () => {
@@ -76,6 +81,9 @@ const App: React.FC = () => {
       </div>
     );
   }
+
+  const getNavButtonClass = (isActive: boolean) => 
+    `flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold ${isActive ? 'text-theme drop-shadow-[0_0_8px_color-mix(in_srgb,var(--theme-color),transparent_40%)]' : 'text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_color-mix(in_srgb,var(--theme-color),transparent_60%)]'}`;
 
   return (
     <div className="min-h-screen relative font-mono text-sm flex flex-col">
@@ -132,19 +140,26 @@ const App: React.FC = () => {
           
           <div className="flex items-center gap-3 sm:gap-6">
              <button 
-                onClick={navigateToGlobal} 
-                className={`flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold ${state.view === 'GLOBAL' ? 'text-theme drop-shadow-[0_0_8px_color-mix(in_srgb,var(--theme-color),transparent_40%)]' : 'text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_color-mix(in_srgb,var(--theme-color),transparent_60%)]'}`}
+                onClick={navigateToHeroes} 
+                className={getNavButtonClass(state.view === 'HEROES')}
              >
-                <Globe className="w-4 h-4" /> <span className="hidden sm:inline">[GLOBAL_DATA]</span><span className="sm:hidden">[DATA]</span>
+                <Swords className="w-4 h-4" /> <span className="hidden sm:inline">HEROES</span>
              </button>
-             {state.view !== 'HOME' && (
-               <button 
-                  onClick={goHome}
-                  className="text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_color-mix(in_srgb,var(--theme-color),transparent_60%)] flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold"
-               >
-                 <Search className="w-4 h-4" /> <span className="hidden sm:inline">[SEARCH]</span>
-               </button>
-             )}
+             
+             <button 
+                onClick={navigateToProCircuit} 
+                className={getNavButtonClass(state.view === 'PRO_CIRCUIT')}
+             >
+                <Gamepad2 className="w-4 h-4" /> <span className="hidden sm:inline">PRO CIRCUIT</span>
+             </button>
+
+             <button 
+                onClick={goHome}
+                className={getNavButtonClass(state.view === 'HOME')}
+             >
+               <Search className="w-4 h-4" /> <span className="hidden sm:inline">SEARCH</span>
+             </button>
+             
              <button
                 onClick={() => setShowSettings(true)}
                 className="text-theme opacity-80 hover:opacity-100 hover:rotate-90 duration-300 transition-all p-1"
@@ -172,7 +187,7 @@ const App: React.FC = () => {
               <PlayerForm onSubmit={navigateToPlayer} isLoading={false} />
 
               <div className="mt-12 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
-                  <button onClick={navigateToGlobal} className="hover-bg-theme border border-theme text-theme px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs w-full sm:w-auto text-center">
+                  <button onClick={navigateToHeroes} className="hover-bg-theme border border-theme text-theme px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs w-full sm:w-auto text-center">
                       [BROWSE_HEROES]
                   </button>
                   <button onClick={() => navigateToMatch(7562624925)} className="hover-bg-theme-dim border border-theme-dim text-theme-dim px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs hover:text-theme hover:border-theme w-full sm:w-auto text-center">
@@ -201,9 +216,13 @@ const App: React.FC = () => {
            />
         )}
 
-        <div className={state.view === 'GLOBAL' ? 'block w-full' : 'hidden'}>
-           <GlobalView onMatchClick={navigateToMatch} />
-        </div>
+        {state.view === 'HEROES' && (
+           <HeroesView />
+        )}
+
+        {state.view === 'PRO_CIRCUIT' && (
+           <ProMatchesView onMatchClick={navigateToMatch} />
+        )}
 
       </main>
 
