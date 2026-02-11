@@ -3,6 +3,7 @@ import { getGlobalHeroes } from '../services/api';
 import { GlobalHero } from '../types';
 import { Loader2, Search, Filter, X } from 'lucide-react';
 import { getHeroImageUrl } from '../services/heroService';
+import HeroDetailModal from './HeroDetailModal';
 
 const ATTR_FILTERS = [
   { id: 'str', label: 'Strength', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-str-active.png' },
@@ -16,6 +17,7 @@ const HeroesView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAttrs, setSelectedAttrs] = useState<string[]>([]);
+  const [selectedHero, setSelectedHero] = useState<GlobalHero | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,7 +109,8 @@ const HeroesView: React.FC = () => {
                 {filteredHeroes.map((h, index) => (
                    <div 
                       key={h.id} 
-                      className="group border border-theme-dim bg-black p-1 hover:border-theme transition-colors cursor-default animate-warp-in"
+                      onClick={() => setSelectedHero(h)}
+                      className="group border border-theme-dim bg-black p-1 hover:border-theme transition-colors cursor-pointer animate-warp-in hover:bg-white/5"
                       style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
                    >
                       <div className="relative overflow-hidden mb-1">
@@ -138,6 +141,13 @@ const HeroesView: React.FC = () => {
                 )}
              </div>
           </div>
+       )}
+
+       {selectedHero && (
+           <HeroDetailModal 
+               hero={selectedHero} 
+               onClose={() => setSelectedHero(null)} 
+           />
        )}
     </div>
   );
