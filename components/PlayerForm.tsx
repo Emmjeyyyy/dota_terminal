@@ -52,7 +52,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onSubmit, isLoading }) => {
         </button>
       </div>
       <p className="text-[10px] text-theme-dim mt-2 text-center uppercase tracking-widest opacity-80">
-        EXAMPLE_TARGET: 88470560
+        EXAMPLE_TARGET: 111620041
       </p>
     </form>
   );
