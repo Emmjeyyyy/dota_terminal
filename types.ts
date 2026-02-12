@@ -29,6 +29,7 @@ export interface MatchSummary {
   party_size?: number;
   lobby_type?: number;
   skill?: number;
+  game_mode?: number;
 }
 
 export interface MatchPlayerDetail {
@@ -189,4 +190,9 @@ export interface PlayerCounts {
   region: Record<string, CountMetric>;
   patch: Record<string, CountMetric>;
   is_radiant: Record<string, CountMetric>;
+}
+
+export interface WordCloud {
+  my_word_counts: Record<string, number>;
+  all_word_counts: Record<string, number>;
 }

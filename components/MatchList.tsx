@@ -8,6 +8,12 @@ interface MatchListProps {
   onMatchClick: (matchId: number) => void;
 }
 
+const getMatchLabel = (lobby_type: number = 0, game_mode: number = 0): string => {
+  if (game_mode === 23) return 'Turbo';
+  if (lobby_type === 7) return 'Ranked';
+  return 'Unranked';
+};
+
 const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
   return (
     <div className="space-y-2">
@@ -16,6 +22,7 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
         const won = (isRadiant && match.radiant_win) || (!isRadiant && !match.radiant_win);
         const durationMin = Math.floor(match.duration / 60);
         const durationSec = String(match.duration % 60).padStart(2, '0');
+        const label = getMatchLabel(match.lobby_type, match.game_mode);
 
         return (
           <div 
@@ -36,8 +43,14 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
                   <div className={`font-bold text-xs uppercase tracking-wider ${won ? 'text-theme' : 'text-red-400 opacity-80'}`}>
                     {won ? '>> VICTORY' : '>> DEFEAT'}
                   </div>
-                  <div className="text-[10px] text-theme-dim font-mono">
-                    {new Date(match.start_time * 1000).toLocaleDateString()}
+                  <div className="flex items-center gap-1.5 text-[10px] text-theme-dim font-mono">
+                    <span>{new Date(match.start_time * 1000).toLocaleDateString()}</span>
+                    {label && (
+                        <>
+                           <span className="opacity-50">/</span>
+                           <span className="text-theme opacity-80 uppercase tracking-tight">{label}</span>
+                        </>
+                    )}
                   </div>
                </div>
             </div>
