@@ -6,10 +6,10 @@ import { getHeroImageUrl } from '../services/heroService';
 import HeroDetailModal from './HeroDetailModal';
 
 const ATTR_FILTERS = [
-   { id: 'str', label: 'Strength', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-str-active.png' },
-   { id: 'agi', label: 'Agility', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-agi-active.png' },
-   { id: 'int', label: 'Intelligence', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-int-active.png' },
-   { id: 'all', label: 'Universal', icon: 'https://cdn.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-uni-active.png' },
+   { id: 'str', label: 'Strength', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_strength.png' },
+   { id: 'agi', label: 'Agility', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_agility.png' },
+   { id: 'int', label: 'Intelligence', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_intelligence.png' },
+   { id: 'all', label: 'Universal', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_universal.png' },
 ];
 
 const HeroesView: React.FC = () => {
@@ -87,21 +87,34 @@ const HeroesView: React.FC = () => {
                      <span className="text-[10px] uppercase text-theme-dim tracking-wider mr-1 hidden sm:flex items-center gap-1">
                         <Filter className="w-3 h-3" /> Attr:
                      </span>
-                     {ATTR_FILTERS.map((attr) => (
-                        <button
-                           key={attr.id}
-                           onClick={() => toggleAttr(attr.id)}
-                           className={`
-                            w-8 h-8 rounded-full border transition-all duration-300 relative group overflow-hidden
-                            ${selectedAttrs.includes(attr.id)
-                                 ? 'opacity-100 scale-110 border-theme bg-theme/10 shadow-[0_0_10px_rgba(74,222,128,0.3)]'
-                                 : 'opacity-40 border-transparent hover:opacity-100 hover:scale-105 grayscale hover:grayscale-0'}
-                         `}
-                           title={attr.label}
-                        >
-                           <img src={attr.icon} alt={attr.label} className="w-full h-full object-contain" />
-                        </button>
-                     ))}
+                     {ATTR_FILTERS.map((attr) => {
+                        const isSelected = selectedAttrs.includes(attr.id);
+                        let selectedClasses = '';
+                        if (isSelected) {
+                            if (attr.id === 'str') selectedClasses = 'opacity-100 scale-110 border-red-500 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
+                            else if (attr.id === 'agi') selectedClasses = 'opacity-100 scale-110 border-green-500 bg-green-500/10 shadow-[0_0_10px_rgba(34,197,94,0.5)]';
+                            else if (attr.id === 'int') selectedClasses = 'opacity-100 scale-110 border-[#00a4db] bg-[#00a4db]/10 shadow-[0_0_10px_rgba(0,164,219,0.5)]';
+                            else if (attr.id === 'all') selectedClasses = 'opacity-100 scale-110 border-transparent shadow-[0_0_10px_rgba(255,255,255,0.3)]';
+                        } else {
+                            selectedClasses = 'opacity-40 border-transparent hover:opacity-100 hover:scale-105 grayscale hover:grayscale-0';
+                        }
+
+                        return (
+                           <button
+                              key={attr.id}
+                              onClick={() => toggleAttr(attr.id)}
+                              className={`w-8 h-8 rounded-full border transition-all duration-300 relative group overflow-hidden flex items-center justify-center ${selectedClasses}`}
+                              title={attr.label}
+                           >
+                              {isSelected && attr.id === 'all' && (
+                                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-red-500 via-green-500 to-[#00a4db] p-[1px] -z-10">
+                                    <div className="w-full h-full bg-black rounded-full" />
+                                 </div>
+                              )}
+                              <img src={attr.icon} alt={attr.label} className="w-full h-full object-contain relative z-10" />
+                           </button>
+                        );
+                     })}
                   </div>
                </div>
 
