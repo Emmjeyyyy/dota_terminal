@@ -101,7 +101,7 @@ const GlobalView: React.FC<GlobalViewProps> = ({ onMatchClick }) => {
                            </div>
                            <input
                               type="text"
-                              placeholder="FILTER_OPERATIVES..."
+                              placeholder="SEARCH HERO..."
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                               className="w-full bg-black/50 border border-theme-dim text-theme pl-10 pr-4 py-2 text-xs uppercase tracking-wider focus:outline-none focus:border-theme focus:ring-1 focus:ring-theme/50 transition-all placeholder-theme-dim/50"

@@ -3,6 +3,8 @@ import { MatchDetail, MatchPlayerDetail } from '../types';
 import { getMatchDetails, requestMatchParse } from '../services/api';
 import { getHeroImageUrl } from '../services/heroService';
 import { Loader2, RefreshCw, ArrowLeft, Trophy, Swords } from 'lucide-react';
+import ItemTooltip from './ItemTooltip';
+import ItemWithTooltip from './ItemWithTooltip';
 
 interface MatchDetailViewProps {
   matchId: number;
@@ -22,12 +24,26 @@ interface ExtendedPlayer extends MatchPlayerDetail {
   aghanims_scepter?: number;
   aghanims_shard?: number;
   item_neutral?: number;
+  total_xp?: number;
+  hero_healing?: number;
+  first_purchase_time?: Record<string, number>;
 }
+
+const XP_TABLE = [
+      0,   240,   640,  1160,  1760,
+   2440,  3200,  4000,  4900,  5900,
+   7000,  8200,  9500, 10900, 12400,
+  14000, 15700, 17500, 19400, 21400,
+  23600, 26000, 28600, 31400, 34400,
+  38400, 43400, 49400, 56400, 63900
+];
 
 const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClick, onBack }) => {
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [itemMap, setItemMap] = useState<Record<number, string>>({});
+  const [itemIdToKey, setItemIdToKey] = useState<Record<number, string>>({});
+  const [itemDataMap, setItemDataMap] = useState<Record<number, any>>({});
   const [heroConstants, setHeroConstants] = useState<Record<string, any>>({});
 
   useEffect(() => {
@@ -50,10 +66,18 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
         
         // Process Items
         const map: Record<number, string> = {};
-        Object.values(itemsData).forEach((item: any) => {
-            if(item.id) map[item.id] = item.img;
+        const keyMap: Record<number, string> = {};
+        const dataMap: Record<number, any> = {};
+        Object.entries(itemsData).forEach(([key, item]: [string, any]) => {
+            if(item.id) {
+                map[item.id] = item.img;
+                keyMap[item.id] = key;
+                dataMap[item.id] = item;
+            }
         });
         setItemMap(map);
+        setItemIdToKey(keyMap);
+        setItemDataMap(dataMap);
 
         // Process Heroes (Store fully for facets)
         setHeroConstants(heroesData);
@@ -227,16 +251,62 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
            <div className="min-w-[1200px]">
                <div className="flex items-center text-[10px] uppercase text-theme-dim bg-black/40 border-b border-theme-dim/30 py-2 px-4 font-bold tracking-wider">
                   <div className="w-52 shrink-0">Player</div>
-                  <div className="w-12 text-center shrink-0">Facet</div>
-                  <div className="w-12 text-center shrink-0">LVL</div>
-                  <div className="w-24 text-center shrink-0">KDA</div>
-                  <div className="w-20 text-center shrink-0">LH/DN</div>
-                  <div className="w-20 text-right shrink-0">NET</div>
-                  <div className="w-24 text-center shrink-0">GPM/XPM</div>
-                  <div className="w-16 text-right shrink-0">HD</div>
-                  <div className="w-16 text-right shrink-0">TD</div>
-                  <div className="w-[240px] pl-6 shrink-0">Items</div>
-                  <div className="w-12 text-center shrink-0"></div> {/* Neutral */}
+                  {/* <div className="w-12 text-center shrink-0">Facet</div> */}
+                  <div className="w-12 text-center shrink-0">
+                      <span className="group relative cursor-help">
+                          LVL
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Level</div>
+                      </span>
+                  </div>
+                  <div className="w-24 text-center shrink-0">
+                      <span className="group relative cursor-help">
+                          KDA
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Kills / Deaths / Assists</div>
+                      </span>
+                  </div>
+                  <div className="w-20 text-center shrink-0">
+                      <span className="group relative cursor-help">
+                          LH/DN
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Last Hits / Denies</div>
+                      </span>
+                  </div>
+                  <div className="w-20 text-right shrink-0">
+                      <span className="group relative cursor-help">
+                          NET
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Net Worth</div>
+                      </span>
+                  </div>
+                  <div className="w-24 text-center shrink-0">
+                      <span className="group relative cursor-help">
+                          GPM/XPM
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Gold Per Minute / Experience Per Minute</div>
+                      </span>
+                  </div>
+                  <div className="w-16 text-right shrink-0">
+                      <span className="group relative cursor-help">
+                          HD
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Amount of damage dealt to heroes</div>
+                      </span>
+                  </div>
+                  <div className="w-16 text-right shrink-0">
+                      <span className="group relative cursor-help">
+                          TD
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Amount of damage dealt to towers</div>
+                      </span>
+                  </div>
+                  <div className="w-16 text-right shrink-0">
+                      <span className="group relative cursor-help">
+                          HH
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Amount of health restored to heroes</div>
+                      </span>
+                  </div>
+                  <div className="w-[300px] pl-6 shrink-0">
+                      <span className="group relative cursor-help">
+                          Items
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-[#444] text-white text-[11px] font-normal normal-case rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-lg border border-white/10">Main Inventory</div>
+                      </span>
+                  </div>
+                  <div className="w-14 text-center shrink-0"></div> {/* Neutral */}
                   <div className="w-10 text-center shrink-0"></div> {/* Aghs */}
                   <div className="flex-1"></div>
                </div>
@@ -288,14 +358,47 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                                      </div>
                                  </div>
                               </div>
-                              
-                              {/* Facet Column */}
+                              {/* Facet Column
                               <div className="w-12 text-center shrink-0 font-mono text-white text-xs text-theme-dim">
                                   {p.hero_variant || '-'}
-                              </div>
+                              </div> */}
 
                               {/* Stats */}
-                              <div className="w-12 text-center shrink-0 font-mono text-white text-xs">{p.level || '-'}</div>
+                              <div className="w-12 flex justify-center items-center shrink-0">
+                                  {(() => {
+                                      let progress = 0;
+                                      if (p.level && p.level < 30 && (p as ExtendedPlayer).total_xp !== undefined) {
+                                          const xp = (p as ExtendedPlayer).total_xp!;
+                                          const currentLevelXp = XP_TABLE[p.level - 1] || 0;
+                                          const nextLevelXp = XP_TABLE[p.level] || currentLevelXp + 1;
+                                          const xpIntoLevel = xp - currentLevelXp;
+                                          const xpRequired = nextLevelXp - currentLevelXp;
+                                          progress = Math.max(0, Math.min(1, xpIntoLevel / xpRequired));
+                                      } else if (p.level === 30) {
+                                          progress = 1;
+                                      }
+                                      const r = 13;
+                                      const circ = 2 * Math.PI * r;
+                                      return (
+                                          <div className="relative w-8 h-8 flex items-center justify-center">
+                                              <svg className="absolute inset-0 w-full h-full -rotate-90">
+                                                  <circle cx="16" cy="16" r={r} fill="transparent" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+                                                  <circle 
+                                                      cx="16" cy="16" r={r} 
+                                                      fill="transparent" 
+                                                      stroke="#fbbf24" 
+                                                      strokeWidth="2" 
+                                                      strokeDasharray={circ}
+                                                      strokeDashoffset={circ * (1 - progress)}
+                                                      className="transition-all duration-1000 ease-out"
+                                                      strokeLinecap="round"
+                                                  />
+                                              </svg>
+                                              <span className="font-mono text-white text-[11px] font-bold z-10">{p.level || '-'}</span>
+                                          </div>
+                                      );
+                                  })()}
+                              </div>
                               
                               <div className="w-24 text-center shrink-0 font-mono text-xs">
                                   <span className="text-green-400 font-bold">{p.kills}</span>
@@ -326,33 +429,67 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                               </div>
 
                               <div className="w-16 text-right shrink-0 font-mono text-xs text-white/60">
-                                  {p.tower_damage || '-'}
+                                  {p.tower_damage ? (p.tower_damage >= 1000 ? (p.tower_damage / 1000).toFixed(1).replace('.0', '') + 'k' : p.tower_damage) : '-'}
+                              </div>
+                              
+                              <div className="w-16 text-right shrink-0 font-mono text-xs text-white/80">
+                                  {p.hero_healing ? (p.hero_healing >= 1000 ? (p.hero_healing / 1000).toFixed(1).replace('.0', '') + 'k' : p.hero_healing) : '-'}
                               </div>
 
                               {/* Main Inventory */}
-                              <div className="w-[240px] pl-6 shrink-0 flex items-center gap-1">
+                              <div className="w-[300px] pl-6 shrink-0 flex items-center gap-1">
                                   {itemIds.map((itemId, i) => {
                                       const url = getItemUrl(itemId);
                                       if (!url) return null;
+
+                                      const itemKey = itemIdToKey[itemId];
+                                      const purchaseTimeStr = (p as ExtendedPlayer).first_purchase_time?.[itemKey];
+                                      let timeStr = "";
+                                      if (purchaseTimeStr !== undefined) {
+                                          const t = Number(purchaseTimeStr);
+                                          const minutes = Math.floor(Math.abs(t) / 60);
+                                          const seconds = Math.floor(Math.abs(t) % 60);
+                                          timeStr = `${t < 0 ? '-' : ''}${minutes}:${seconds.toString().padStart(2, '0')}`;
+                                      }
+
                                       return (
-                                          <div key={i} className="w-8 h-6 bg-black/50 border border-theme-dim/30 relative">
-                                              <img src={url} alt="" className="w-full h-full object-cover" title={`Item ${itemId}`} />
-                                          </div>
+                                          <ItemWithTooltip 
+                                              key={i}
+                                              itemId={itemId}
+                                              url={url}
+                                              timeStr={timeStr}
+                                              itemData={itemDataMap[itemId]}
+                                          />
                                       );
                                   })}
                               </div>
                               
                               {/* Neutral Item */}
-                              <div className="w-12 shrink-0 flex items-center justify-center">
+                              <div className="w-14 shrink-0 flex items-center justify-center">
                                   {(() => {
                                       const neutralId = p.item_neutral || p.neutral_item;
                                       const url = neutralId ? getItemUrl(neutralId) : null;
                                       
                                       if (url) {
+                                          const itemKey = itemIdToKey[neutralId!];
+                                          const purchaseTimeStr = (p as ExtendedPlayer).first_purchase_time?.[itemKey];
+                                          let timeStr = "";
+                                          if (purchaseTimeStr !== undefined) {
+                                              const t = Number(purchaseTimeStr);
+                                              const minutes = Math.floor(Math.abs(t) / 60);
+                                              const seconds = Math.floor(Math.abs(t) % 60);
+                                              timeStr = `${t < 0 ? '-' : ''}${minutes}:${seconds.toString().padStart(2, '0')}`;
+                                          }
+
                                           return (
-                                              <div className="w-6 h-6 rounded-full overflow-hidden border border-theme-dim/50 relative shadow-[0_0_5px_rgba(255,255,255,0.1)] shrink-0">
-                                                  <img src={url} alt="" className="w-full h-full object-cover" title="Neutral Item" />
-                                              </div>
+                                              <ItemWithTooltip 
+                                                  key="neutral"
+                                                  itemId={neutralId}
+                                                  url={url}
+                                                  timeStr={timeStr}
+                                                  itemData={itemDataMap[neutralId!]}
+                                                  isNeutral={true}
+                                              />
                                           );
                                       }
                                       return null;
