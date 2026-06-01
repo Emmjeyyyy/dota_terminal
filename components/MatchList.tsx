@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MatchSummary } from '../types';
 import { getHeroImageUrl } from '../services/heroService';
 import { ChevronRight } from 'lucide-react';
@@ -15,9 +15,16 @@ const getMatchLabel = (lobby_type: number = 0, game_mode: number = 0): string =>
 };
 
 const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(matches.length / itemsPerPage);
+  
+  const paginatedMatches = matches.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
   return (
-    <div className="space-y-2">
-      {matches.map((match) => {
+    <div className="space-y-4">
+      <div className="space-y-2">
+      {paginatedMatches.map((match) => {
         const isRadiant = match.player_slot < 128;
         const won = (isRadiant && match.radiant_win) || (!isRadiant && !match.radiant_win);
         const durationMin = Math.floor(match.duration / 60);
@@ -79,6 +86,31 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
       })}
       {matches.length === 0 && (
           <div className="text-center py-6 text-theme-dim italic text-xs uppercase">No matches found in buffer.</div>
+      )}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between border-t border-theme-dim pt-4 mt-2">
+          <button 
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="text-xs uppercase tracking-wider text-theme-dim hover:text-theme disabled:opacity-30 disabled:hover:text-theme-dim transition-colors"
+          >
+            {'<< Previous_Page'}
+          </button>
+          
+          <div className="text-xs font-mono text-theme glow-text">
+            [{page} / {totalPages}]
+          </div>
+
+          <button 
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="text-xs uppercase tracking-wider text-theme-dim hover:text-theme disabled:opacity-30 disabled:hover:text-theme-dim transition-colors"
+          >
+            {'Next_Page >>'}
+          </button>
+        </div>
       )}
     </div>
   );

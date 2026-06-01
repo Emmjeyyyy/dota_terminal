@@ -214,7 +214,27 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                     className="w-24 h-24 border border-theme z-10 shrink-0 brightness-125 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"
                 />
                 <div className="text-center md:text-left flex-1 z-10 w-full">
-                    <h1 className="text-2xl md:text-3xl font-bold text-theme mb-1 uppercase tracking-tight glow-text break-words">{profile.profile.personaname}</h1>
+                    <div className="flex items-center justify-center md:justify-start gap-3 mb-1">
+                        <h1 className="text-2xl md:text-3xl font-bold text-theme uppercase tracking-tight glow-text break-words">
+                            {profile.profile.personaname}
+                        </h1>
+                        {profile.rank_tier && (
+                            <div className="relative w-14 h-14 shrink-0 drop-shadow-[0_0_8px_rgba(74,222,128,0.3)]">
+                                <img 
+                                    src={`https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${Math.floor(profile.rank_tier / 10)}.png`}
+                                    className="absolute inset-0 w-full h-full object-contain"
+                                    alt="Rank Medal"
+                                />
+                                {(profile.rank_tier % 10) > 0 && Math.floor(profile.rank_tier / 10) < 8 && (
+                                    <img 
+                                        src={`https://www.opendota.com/assets/images/dota2/rank_icons/rank_star_${profile.rank_tier % 10}.png`}
+                                        className="absolute inset-0 w-full h-full object-contain"
+                                        alt="Rank Stars"
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </div>
                     <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 md:gap-4 text-xs text-theme-dim font-mono">
                         {profile.profile.loccountrycode && (
                             <span className="flex items-center gap-1 border border-theme-dim px-2 py-0.5">
