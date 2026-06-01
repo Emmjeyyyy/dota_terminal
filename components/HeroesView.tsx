@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { getGlobalHeroes } from '../services/api';
 import { GlobalHero } from '../types';
 import { Loader2, Search, Filter, X } from 'lucide-react';
@@ -13,21 +14,19 @@ const ATTR_FILTERS = [
 ];
 
 const HeroesView: React.FC = () => {
-   const [heroes, setHeroes] = useState<GlobalHero[]>([]);
-   const [loading, setLoading] = useState(false);
+   const { data, isLoading: loading } = useQuery({
+      queryKey: ['globalHeroes'],
+      queryFn: getGlobalHeroes,
+   });
+   
    const [searchQuery, setSearchQuery] = useState('');
    const [selectedAttrs, setSelectedAttrs] = useState<string[]>([]);
    const [selectedHero, setSelectedHero] = useState<GlobalHero | null>(null);
 
-   useEffect(() => {
-      const fetchData = async () => {
-         setLoading(true);
-         const data = await getGlobalHeroes();
-         setHeroes(data.sort((a, b) => a.localized_name.localeCompare(b.localized_name)));
-         setLoading(false);
-      };
-      fetchData();
-   }, []);
+   const heroes = useMemo(() => {
+      if (!data) return [];
+      return [...data].sort((a, b) => a.localized_name.localeCompare(b.localized_name));
+   }, [data]);
 
    const toggleAttr = (attrId: string) => {
       setSelectedAttrs(prev =>

@@ -148,7 +148,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-64 text-theme">
+      <div className="flex flex-col justify-center items-center h-[60vh] text-theme">
         <Loader2 className="w-8 h-8 animate-spin mb-2" />
         <span className="text-xs uppercase animate-pulse">Fetching_Match_Data...</span>
       </div>

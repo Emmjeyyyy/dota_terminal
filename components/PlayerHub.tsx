@@ -28,6 +28,20 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
     const [heroes, setHeroes] = useState<PlayerHeroStats[]>([]);
     const [loadingTab, setLoadingTab] = useState(false);
 
+    // Reset ALL state when switching to a different player
+    useEffect(() => {
+        setLoading(true);
+        setProfile(null);
+        setWl(null);
+        setMatches([]);
+        setCounts(null);
+        setWordCloud(null);
+        setWardMap(null);
+        setPeers([]);
+        setHeroes([]);
+        setActiveTab('overview');
+    }, [accountId]);
+
     useEffect(() => {
         let mounted = true;
         const fetchData = async () => {
@@ -81,7 +95,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-theme">
+            <div className="flex flex-col items-center justify-center h-[70vh] text-theme">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" />
                 <div className="uppercase tracking-widest text-xs animate-pulse">Retrieving_Subject_Data...</div>
             </div>

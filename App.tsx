@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import PlayerForm from './components/PlayerForm';
 import PlayerHub from './components/PlayerHub';
@@ -39,6 +40,15 @@ const PlayerHubWrapper: React.FC = () => {
     return <PlayerHub accountId={parseInt(id, 10)} onMatchClick={(matchId) => navigate(`/match/${matchId}`)} onPeerClick={(accountId) => navigate(`/player/${accountId}`)} />;
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes cache
+    },
+  },
+});
+
 const App: React.FC = () => {
   const [appReady, setAppReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -68,6 +78,7 @@ const App: React.FC = () => {
     `flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold ${isActive ? 'text-theme drop-shadow-[0_0_8px_color-mix(in_srgb,var(--theme-color),transparent_40%)]' : 'text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_color-mix(in_srgb,var(--theme-color),transparent_60%)]'}`;
 
   return (
+    <QueryClientProvider client={queryClient}>
     <div className="min-h-screen relative font-mono text-sm flex flex-col">
       {/* CRT Overlays */}
       <div className="scanlines pointer-events-none" />
@@ -189,6 +200,7 @@ const App: React.FC = () => {
          <p>SYSTEM STATUS: ONLINE // DATA SOURCE: OPENDOTA  API</p>
       </footer>
     </div>
+    </QueryClientProvider>
   );
 };
 

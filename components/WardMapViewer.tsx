@@ -1,5 +1,6 @@
 import React from 'react';
 import { WardMap } from '../types';
+import dotaMap from '../assets/dota_minimap.jpg';
 
 interface WardMapViewerProps {
     wardMap: WardMap | null;
@@ -15,7 +16,7 @@ const WardMapViewer: React.FC<WardMapViewerProps> = ({ wardMap }) => {
     }
 
     const hasData = Object.keys(wardMap.obs || {}).length > 0 || Object.keys(wardMap.sen || {}).length > 0;
-    
+
     if (!hasData) {
         return (
             <div className="text-center py-8 text-theme-dim border border-dashed border-theme-dim/30 uppercase text-xs">
@@ -24,13 +25,10 @@ const WardMapViewer: React.FC<WardMapViewerProps> = ({ wardMap }) => {
         );
     }
 
-    // Process ward data into an array of points
-    // OpenDota coordinates typically map from 64 to 192.
-    // X goes left to right, Y goes bottom to top.
     const extractPoints = (data: Record<string, Record<string, number>>) => {
         const points: { x: number, y: number, count: number }[] = [];
         let maxCount = 1;
-        
+
         Object.entries(data || {}).forEach(([xStr, yObj]) => {
             const gridX = parseInt(xStr, 10);
             Object.entries(yObj).forEach(([yStr, count]) => {
@@ -39,46 +37,47 @@ const WardMapViewer: React.FC<WardMapViewerProps> = ({ wardMap }) => {
                 points.push({ x: gridX, y: gridY, count });
             });
         });
-        
+
         return { points, maxCount };
     };
 
     const obsData = extractPoints(wardMap.obs);
     const senData = extractPoints(wardMap.sen);
 
-    const renderMap = (points: {x: number, y: number, count: number}[], maxCount: number, type: 'obs' | 'sen') => {
+    const renderMap = (points: { x: number, y: number, count: number }[], maxCount: number, type: 'obs' | 'sen') => {
         return (
             <div className="relative aspect-square w-full max-w-md mx-auto bg-black/80 border border-theme-dim/30 overflow-hidden">
-                <img 
-                    src="https://raw.githubusercontent.com/odota/web/master/public/assets/images/dota2/map/7.33/dota_map.png" 
-                    alt="Dota 2 Map" 
+                <img
+                    src={dotaMap}
+                    alt="Dota 2 Map"
                     className="absolute inset-0 w-full h-full object-cover opacity-80"
-                    onError={(e) => {
-                        // Fallback to older map if 7.33 is unavailable
-                        (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/odota/web/master/public/assets/images/dota2/map/minimap.jpg";
-                    }}
                 />
-                
-                {/* Heatmap overlay */}
+
                 {points.map((p, idx) => {
-                    // OpenDota standard grid mapping: 64 to 192
                     const pctX = ((p.x - 64) / 128) * 100;
                     const pctY = 100 - (((p.y - 64) / 128) * 100);
-                    
-                    // Clamp to visible area
+
                     if (pctX < 0 || pctX > 100 || pctY < 0 || pctY > 100) return null;
 
                     const intensity = p.count / maxCount;
-                    const size = 10 + (intensity * 15); // 10px to 25px
-                    const opacity = 0.4 + (intensity * 0.6); // 0.4 to 1.0
 
-                    // Yellow for obs, Blue for sen
-                    const color = type === 'obs' ? 'rgba(255, 235, 59, 1)' : 'rgba(33, 150, 243, 1)';
-                    const glowColor = type === 'obs' ? 'rgba(255, 193, 7, 0.8)' : 'rgba(3, 169, 244, 0.8)';
-                    const haloColor = type === 'obs' ? 'rgba(76, 175, 80, 0.4)' : 'rgba(103, 58, 183, 0.4)';
+                    // Dot size: small for rare, larger for frequent (but stays discrete)
+                    const size = 6 + (intensity * 14); // 6px → 20px
+
+                    // Opacity: low-freq is semi-transparent, high-freq is solid
+                    const opacity = 0.35 + (intensity * 0.65);
+
+                    // Glow radius scales with frequency for heat emphasis
+                    const glowInner = size * 0.4;
+                    const glowOuter = size * 1.2 + (intensity * size * 0.8);
+                    const haloOuter = size * 2 + (intensity * size * 1.5);
+
+                    const color      = type === 'obs' ? 'rgba(255, 235, 59, 1)'    : 'rgba(33, 150, 243, 1)';
+                    const glowColor  = type === 'obs' ? `rgba(255, 193, 7, ${0.3 + intensity * 0.3})`  : `rgba(3, 169, 244, ${0.3 + intensity * 0.3})`;
+                    const haloColor  = type === 'obs' ? `rgba(76, 175, 80, ${0.05 + intensity * 0.1})` : `rgba(103, 58, 183, ${0.05 + intensity * 0.1})`;
 
                     return (
-                        <div 
+                        <div
                             key={`${p.x}-${p.y}-${idx}`}
                             className="absolute rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 mix-blend-screen"
                             style={{
@@ -88,7 +87,11 @@ const WardMapViewer: React.FC<WardMapViewerProps> = ({ wardMap }) => {
                                 height: `${size}px`,
                                 backgroundColor: color,
                                 opacity: opacity,
-                                boxShadow: `0 0 ${size * 1.5}px ${size * 0.5}px ${glowColor}, 0 0 ${size * 3}px ${size * 1.5}px ${haloColor}`
+                                boxShadow: [
+                                    `0 0 ${glowInner}px ${glowInner * 0.5}px ${glowColor}`,
+                                    `0 0 ${glowOuter}px ${glowOuter * 0.4}px ${glowColor}`,
+                                    `0 0 ${haloOuter}px ${haloOuter * 0.3}px ${haloColor}`,
+                                ].join(', '),
                             }}
                         />
                     );
