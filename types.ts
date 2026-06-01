@@ -196,3 +196,8 @@ export interface WordCloud {
   my_word_counts: Record<string, number>;
   all_word_counts: Record<string, number>;
 }
+
+export interface WardMap {
+  obs: Record<string, Record<string, number>>;
+  sen: Record<string, Record<string, number>>;
+}

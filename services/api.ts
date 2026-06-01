@@ -178,4 +178,15 @@ export const requestMatchParse = async (matchId: number): Promise<void> => {
   } catch (e) {
     console.error("Error requesting parse:", e);
   }
-}
+};
+
+export const getPlayerWardmap = async (accountId: number): Promise<any | null> => {
+  try {
+    const res = await rateLimitedFetch(`${API_BASE_URL}/players/${accountId}/wardmap`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error("Error fetching wardmap:", e);
+    return null;
+  }
+};

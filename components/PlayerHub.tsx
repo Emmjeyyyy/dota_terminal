@@ -1,447 +1,473 @@
 import React, { useEffect, useState } from 'react';
-import { PlayerProfile, WinLoss, MatchSummary, Peer, PlayerHeroStats, PlayerCounts, CountMetric, WordCloud } from '../types';
-import { getPlayerProfile, getPlayerWL, getRecentMatches, getPlayerPeers, getPlayerHeroes, getPlayerCounts, getPlayerWordCloud } from '../services/api';
-import { Loader2, Users, History, LayoutGrid, AlertCircle, HardDrive, BarChart3, MessageSquare } from 'lucide-react';
+import { PlayerProfile, WinLoss, MatchSummary, Peer, PlayerHeroStats, PlayerCounts, CountMetric, WordCloud, WardMap } from '../types';
+import { getPlayerProfile, getPlayerWL, getRecentMatches, getPlayerPeers, getPlayerHeroes, getPlayerCounts, getPlayerWordCloud, getPlayerWardmap } from '../services/api';
+import { Loader2, Users, History, LayoutGrid, AlertCircle, HardDrive, BarChart3, MessageSquare, MapPin } from 'lucide-react';
 import MatchList from './MatchList';
 import { getHeroImageUrl, getHeroName } from '../services/heroService';
+import WardMapViewer from './WardMapViewer';
 
 interface PlayerHubProps {
-  accountId: number;
-  onMatchClick: (id: number) => void;
-  onPeerClick: (id: number) => void;
+    accountId: number;
+    onMatchClick: (id: number) => void;
+    onPeerClick: (id: number) => void;
 }
 
-type Tab = 'overview' | 'heroes' | 'peers' | 'wordcloud';
+type Tab = 'overview' | 'heroes' | 'peers' | 'wordcloud' | 'wardmap';
 
 const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerClick }) => {
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<PlayerProfile | null>(null);
-  const [wl, setWl] = useState<WinLoss | null>(null);
-  const [counts, setCounts] = useState<PlayerCounts | null>(null);
-  const [matches, setMatches] = useState<MatchSummary[]>([]);
-  const [wordCloud, setWordCloud] = useState<WordCloud | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
-  
-  const [peers, setPeers] = useState<Peer[]>([]);
-  const [heroes, setHeroes] = useState<PlayerHeroStats[]>([]);
-  const [loadingTab, setLoadingTab] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [profile, setProfile] = useState<PlayerProfile | null>(null);
+    const [wl, setWl] = useState<WinLoss | null>(null);
+    const [counts, setCounts] = useState<PlayerCounts | null>(null);
+    const [matches, setMatches] = useState<MatchSummary[]>([]);
+    const [wordCloud, setWordCloud] = useState<WordCloud | null>(null);
+    const [wardMap, setWardMap] = useState<WardMap | null>(null);
+    const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  useEffect(() => {
-    let mounted = true;
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [p, w, m, c, wc] = await Promise.all([
-            getPlayerProfile(accountId),
-            getPlayerWL(accountId),
-            getRecentMatches(accountId),
-            getPlayerCounts(accountId),
-            getPlayerWordCloud(accountId)
-        ]);
-        if (mounted) {
-            setProfile(p);
-            setWl(w);
-            setMatches(m);
-            setCounts(c);
-            setWordCloud(wc);
-        }
-      } catch (e) {
-        console.error("Failed to load player data", e);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    fetchData();
-    return () => { mounted = false; };
-  }, [accountId]);
+    const [peers, setPeers] = useState<Peer[]>([]);
+    const [heroes, setHeroes] = useState<PlayerHeroStats[]>([]);
+    const [loadingTab, setLoadingTab] = useState(false);
 
-  useEffect(() => {
-    const loadTabData = async () => {
-        if (activeTab === 'peers' && peers.length === 0) {
-            setLoadingTab(true);
-            const data = await getPlayerPeers(accountId);
-            setPeers(data);
-            setLoadingTab(false);
-        } else if (activeTab === 'heroes' && heroes.length === 0) {
-            setLoadingTab(true);
-            const data = await getPlayerHeroes(accountId);
-            setHeroes(data);
-            setLoadingTab(false);
-        }
-    };
-    loadTabData();
-  }, [activeTab, accountId]);
+    useEffect(() => {
+        let mounted = true;
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [p, w, m, c, wc] = await Promise.all([
+                    getPlayerProfile(accountId),
+                    getPlayerWL(accountId),
+                    getRecentMatches(accountId),
+                    getPlayerCounts(accountId),
+                    getPlayerWordCloud(accountId)
+                ]);
+                if (mounted) {
+                    setProfile(p);
+                    setWl(w);
+                    setMatches(m);
+                    setCounts(c);
+                    setWordCloud(wc);
+                }
+            } catch (e) {
+                console.error("Failed to load player data", e);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+        fetchData();
+        return () => { mounted = false; };
+    }, [accountId]);
 
-  if (loading) {
-    return (
-        <div className="flex flex-col items-center justify-center py-20 text-theme">
-            <Loader2 className="w-10 h-10 animate-spin mb-4" />
-            <div className="uppercase tracking-widest text-xs animate-pulse">Retrieving_Subject_Data...</div>
-        </div>
-    );
-  }
+    useEffect(() => {
+        const loadTabData = async () => {
+            if (activeTab === 'peers' && peers.length === 0) {
+                setLoadingTab(true);
+                const data = await getPlayerPeers(accountId);
+                setPeers(data);
+                setLoadingTab(false);
+            } else if (activeTab === 'heroes' && heroes.length === 0) {
+                setLoadingTab(true);
+                const data = await getPlayerHeroes(accountId);
+                setHeroes(data);
+                setLoadingTab(false);
+            } else if (activeTab === 'wardmap' && !wardMap) {
+                setLoadingTab(true);
+                const data = await getPlayerWardmap(accountId);
+                setWardMap(data);
+                setLoadingTab(false);
+            }
+        };
+        loadTabData();
+    }, [activeTab, accountId]);
 
-  if (!profile || !profile.profile) {
-      return (
-          <div className="text-center py-20 border border-dashed border-theme-dim m-4">
-              <AlertCircle className="w-12 h-12 text-theme opacity-50 mx-auto mb-4" />
-              <h2 className="text-xl font-bold uppercase text-theme">Subject_Not_Found</h2>
-              <p className="text-theme-dim text-xs mt-2">Check ID Input Coordinates.</p>
-          </div>
-      );
-  }
-
-  const winRate = wl ? ((wl.win / (wl.win + wl.lose)) * 100).toFixed(1) : '0';
-
-  // Helper for safe count access
-  const getSafeCount = (metric: Record<string, CountMetric> | undefined, key: string): CountMetric => {
-      return metric?.[key] || { games: 0, win: 0 };
-  };
-
-  // Helper to calculate WR
-  const calculateWinRate = (wins: number, games: number) => {
-      if (games === 0) return '0.0';
-      return ((wins / games) * 100).toFixed(1);
-  };
-
-  const renderStatRow = (label: string, wins: number, games: number) => {
-      const wr = calculateWinRate(wins, games);
-      const wrNum = parseFloat(wr);
-      const intensity = wrNum >= 55 ? 'text-theme' : wrNum >= 45 ? 'text-theme opacity-80' : 'text-theme-dim';
-      
-      return (
-          <div className="flex items-center justify-between py-1.5 border-b border-theme-dim/30 last:border-0 text-xs">
-              <span className="text-theme-dim uppercase tracking-wider">{label}</span>
-              <div className="flex items-center gap-4">
-                  <span className="font-mono text-theme-dim">{games}</span>
-                  <span className={`font-mono font-bold w-12 text-right ${intensity}`}>{wr}%</span>
-              </div>
-          </div>
-      );
-  };
-
-  const renderWordCloud = () => {
-    if (!wordCloud || !wordCloud.my_word_counts || Object.keys(wordCloud.my_word_counts).length === 0) {
+    if (loading) {
         return (
-            <div className="text-center py-8 text-theme-dim border border-dashed border-theme-dim/30 uppercase text-xs">
-                No chat word data available.
+            <div className="flex flex-col items-center justify-center py-20 text-theme">
+                <Loader2 className="w-10 h-10 animate-spin mb-4" />
+                <div className="uppercase tracking-widest text-xs animate-pulse">Retrieving_Subject_Data...</div>
             </div>
         );
     }
 
-    const words = Object.entries(wordCloud.my_word_counts)
-        .map(([word, count]) => ({ word, count }))
-        .filter(w => w.word.trim().length > 0)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 50);
-
-    if (words.length === 0) {
+    if (!profile || !profile.profile) {
         return (
-            <div className="text-center py-8 text-theme-dim border border-dashed border-theme-dim/30 uppercase text-xs">
-                No chat word data available.
+            <div className="text-center py-20 border border-dashed border-theme-dim m-4">
+                <AlertCircle className="w-12 h-12 text-theme opacity-50 mx-auto mb-4" />
+                <h2 className="text-xl font-bold uppercase text-theme">Subject_Not_Found</h2>
+                <p className="text-theme-dim text-xs mt-2">Check ID Input Coordinates.</p>
             </div>
         );
     }
 
-    const maxCount = words[0].count;
-    const minCount = words[words.length - 1].count;
-    
-    // Scale font size from 0.75rem to 3rem
-    const minSize = 0.75;
-    const maxSize = 3;
+    const winRate = wl ? ((wl.win / (wl.win + wl.lose)) * 100).toFixed(1) : '0';
 
-    return (
-        <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center items-center p-6 bg-black/40 border border-theme-dim/30">
-            {words.map(({ word, count }) => {
-                // Use square root scaling to dampen outliers slightly
-                const numerator = Math.sqrt(count) - Math.sqrt(minCount);
-                const denominator = Math.sqrt(maxCount) - Math.sqrt(minCount) || 1;
-                const ratio = numerator / denominator;
-                
-                const size = minSize + (ratio * (maxSize - minSize));
-                const opacity = 0.5 + (ratio * 0.5); // 0.5 to 1.0
-                
-                return (
-                    <span 
-                        key={word} 
-                        className="font-mono hover:text-white transition-colors cursor-default select-none relative group"
-                        style={{ 
-                            fontSize: `${size}rem`, 
-                            opacity: opacity,
-                            color: ratio > 0.7 ? 'var(--theme-color)' : undefined 
-                        }}
-                    >
-                        {word}
-                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-black text-theme text-[10px] px-1 border border-theme-dim opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">
-                            {count}
+    // Helper for safe count access
+    const getSafeCount = (metric: Record<string, CountMetric> | undefined, key: string): CountMetric => {
+        return metric?.[key] || { games: 0, win: 0 };
+    };
+
+    // Helper to calculate WR
+    const calculateWinRate = (wins: number, games: number) => {
+        if (games === 0) return '0.0';
+        return ((wins / games) * 100).toFixed(1);
+    };
+
+    const renderStatRow = (label: string, wins: number, games: number) => {
+        const wr = calculateWinRate(wins, games);
+        const wrNum = parseFloat(wr);
+        const intensity = wrNum >= 55 ? 'text-theme' : wrNum >= 45 ? 'text-theme opacity-80' : 'text-theme-dim';
+
+        return (
+            <div className="flex items-center justify-between py-1.5 border-b border-theme-dim/30 last:border-0 text-xs">
+                <span className="text-theme-dim uppercase tracking-wider">{label}</span>
+                <div className="flex items-center gap-4">
+                    <span className="font-mono text-theme-dim">{games}</span>
+                    <span className={`font-mono font-bold w-12 text-right ${intensity}`}>{wr}%</span>
+                </div>
+            </div>
+        );
+    };
+
+    const renderWordCloud = () => {
+        if (!wordCloud || !wordCloud.my_word_counts || Object.keys(wordCloud.my_word_counts).length === 0) {
+            return (
+                <div className="text-center py-8 text-theme-dim border border-dashed border-theme-dim/30 uppercase text-xs">
+                    No chat word data available.
+                </div>
+            );
+        }
+
+        const words = Object.entries(wordCloud.my_word_counts)
+            .map(([word, count]) => ({ word, count }))
+            .filter(w => w.word.trim().length > 0)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 50);
+
+        if (words.length === 0) {
+            return (
+                <div className="text-center py-8 text-theme-dim border border-dashed border-theme-dim/30 uppercase text-xs">
+                    No chat word data available.
+                </div>
+            );
+        }
+
+        const maxCount = words[0].count;
+        const minCount = words[words.length - 1].count;
+
+        // Scale font size from 0.75rem to 3rem
+        const minSize = 0.75;
+        const maxSize = 3;
+
+        return (
+            <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center items-center p-6 bg-black/40 border border-theme-dim/30">
+                {words.map(({ word, count }) => {
+                    // Use square root scaling to dampen outliers slightly
+                    const numerator = Math.sqrt(count) - Math.sqrt(minCount);
+                    const denominator = Math.sqrt(maxCount) - Math.sqrt(minCount) || 1;
+                    const ratio = numerator / denominator;
+
+                    const size = minSize + (ratio * (maxSize - minSize));
+                    const opacity = 0.5 + (ratio * 0.5); // 0.5 to 1.0
+
+                    return (
+                        <span
+                            key={word}
+                            className="font-mono hover:text-white transition-colors cursor-default select-none relative group"
+                            style={{
+                                fontSize: `${size}rem`,
+                                opacity: opacity,
+                                color: ratio > 0.7 ? 'var(--theme-color)' : undefined
+                            }}
+                        >
+                            {word}
+                            <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-black text-theme text-[10px] px-1 border border-theme-dim opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">
+                                {count}
+                            </span>
                         </span>
-                    </span>
-                );
-            })}
-        </div>
-    );
-  };
+                    );
+                })}
+            </div>
+        );
+    };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="terminal-box p-6 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative overflow-hidden">
-         <div className="absolute inset-0 bg-theme-dim opacity-5 pointer-events-none"></div>
-         <img 
-            src={profile.profile.avatarfull} 
-            alt={profile.profile.personaname} 
-            className="w-24 h-24 border border-theme z-10 shrink-0 brightness-125 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"
-         />
-         <div className="text-center md:text-left flex-1 z-10 w-full">
-            <h1 className="text-2xl md:text-3xl font-bold text-theme mb-1 uppercase tracking-tight glow-text break-words">{profile.profile.personaname}</h1>
-            <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 md:gap-4 text-xs text-theme-dim font-mono">
-               {profile.profile.loccountrycode && (
-                   <span className="flex items-center gap-1 border border-theme-dim px-2 py-0.5">
-                      LOC: {profile.profile.loccountrycode}
-                   </span>
-               )}
-               <a href={profile.profile.profileurl} target="_blank" rel="noreferrer" className="hover:text-theme hover:underline uppercase">Steam_Link_Protocol</a>
-            </div>
-         </div>
-         
-         <div className="grid grid-cols-3 gap-2 md:gap-4 text-center z-10 w-full md:w-auto">
-            <div className="bg-black/50 px-2 py-2 border border-theme-dim">
-               <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Wins</div>
-               <div className="text-theme font-bold text-base md:text-lg">{wl?.win || 0}</div>
-            </div>
-            <div className="bg-black/50 px-2 py-2 border border-theme-dim">
-               <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Losses</div>
-               <div className="text-theme opacity-70 font-bold text-base md:text-lg">{wl?.lose || 0}</div>
-            </div>
-            <div className="bg-black/50 px-2 py-2 border border-theme-dim">
-               <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Ratio</div>
-               <div className="font-bold text-base md:text-lg text-theme glow-text">
-                   {winRate}%
-               </div>
-            </div>
-         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-theme-dim bg-black/40 overflow-x-auto custom-scrollbar">
-         <button 
-            onClick={() => setActiveTab('overview')}
-            className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'overview' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
-         >
-            <History className="w-4 h-4" /> [Log]
-         </button>
-         <button 
-            onClick={() => setActiveTab('heroes')}
-            className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'heroes' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
-         >
-            <LayoutGrid className="w-4 h-4" /> [Arsenal]
-         </button>
-         <button 
-            onClick={() => setActiveTab('peers')}
-            className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'peers' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
-         >
-            <Users className="w-4 h-4" /> [Network]
-         </button>
-         <button 
-            onClick={() => setActiveTab('wordcloud')}
-            className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'wordcloud' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
-         >
-            <MessageSquare className="w-4 h-4" /> [Comms]
-         </button>
-      </div>
-
-      {/* Content */}
-      <div className="min-h-[400px] terminal-box p-4 border-t-0">
-         {activeTab === 'overview' && (
-             <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
-                       <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2"><HardDrive className="w-4 h-4"/> Recent_Activity_Feed</h3>
-                       <MatchList matches={matches} onMatchClick={onMatchClick} />
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="terminal-box p-6 flex flex-col md:flex-row items-center gap-6 md:gap-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-theme-dim opacity-5 pointer-events-none"></div>
+                <img
+                    src={profile.profile.avatarfull}
+                    alt={profile.profile.personaname}
+                    className="w-24 h-24 border border-theme z-10 shrink-0 brightness-125 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]"
+                />
+                <div className="text-center md:text-left flex-1 z-10 w-full">
+                    <h1 className="text-2xl md:text-3xl font-bold text-theme mb-1 uppercase tracking-tight glow-text break-words">{profile.profile.personaname}</h1>
+                    <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 md:gap-4 text-xs text-theme-dim font-mono">
+                        {profile.profile.loccountrycode && (
+                            <span className="flex items-center gap-1 border border-theme-dim px-2 py-0.5">
+                                LOC: {profile.profile.loccountrycode}
+                            </span>
+                        )}
+                        <a href={profile.profile.profileurl} target="_blank" rel="noreferrer" className="hover:text-theme hover:underline uppercase">Steam_Link_Protocol</a>
                     </div>
-                    <div>
-                        <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2"><BarChart3 className="w-4 h-4"/> Quick_Stats</h3>
-                        <div className="bg-black/50 p-4 border border-theme-dim text-xs font-mono">
-                            
-                            {/* Lifetime Overview */}
-                            <div className="mb-6">
-                                <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lifetime Overview</h4>
-                                <div className="flex justify-between items-end mb-1">
-                                    <span className="uppercase text-theme-dim">Total Matches</span>
-                                    <span className="text-theme font-bold text-lg">{(wl?.win || 0) + (wl?.lose || 0)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="uppercase text-theme-dim">Overall Win Rate</span>
-                                    <span className={`font-bold ${parseFloat(winRate) >= 50 ? 'text-theme' : 'text-theme opacity-80'}`}>{winRate}%</span>
-                                </div>
-                                <div className="text-[10px] uppercase text-theme-dim mt-2 opacity-60 text-right">
-                                    {(wl?.win || 0) + (wl?.lose || 0) > 0 ? ">> STATS_RECORDED" : ">> NO_STATS_RECORDED"}
-                                </div>
-                            </div>
+                </div>
 
-                            {counts ? (() => {
-                                // Preparation
-                                const normal = getSafeCount(counts.lobby_type, '0'); // Public matchmaking
-                                const ranked = getSafeCount(counts.lobby_type, '7'); // Ranked
-
-                                const allPick = {
-                                    games: getSafeCount(counts.game_mode, '1').games + getSafeCount(counts.game_mode, '22').games,
-                                    win: getSafeCount(counts.game_mode, '1').win + getSafeCount(counts.game_mode, '22').win
-                                };
-
-                                // To calculate 'Other', subtract AP from total games in game_mode counts
-                                let totalGamesGM = 0;
-                                let totalWinsGM = 0;
-                                if (counts.game_mode) {
-                                    Object.values(counts.game_mode).forEach((c: CountMetric) => { totalGamesGM += c.games; totalWinsGM += c.win; });
-                                }
-                                
-                                const other = {
-                                    games: totalGamesGM - allPick.games,
-                                    win: totalWinsGM - allPick.win
-                                };
-
-                                const radiant = getSafeCount(counts.is_radiant, '1');
-                                const dire = getSafeCount(counts.is_radiant, '0');
-
-                                return (
-                                    <div className="space-y-6">
-                                        {/* Lobby Breakdown */}
-                                        <div>
-                                            <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lobby Breakdown</h4>
-                                            <div className="flex justify-between text-[9px] uppercase text-theme-dim mb-1 px-1">
-                                                <span>Type</span>
-                                                <div className="flex gap-4"><span>Games</span><span>Win%</span></div>
-                                            </div>
-                                            {renderStatRow("Normal", normal.win, normal.games)}
-                                            {renderStatRow("Ranked", ranked.win, ranked.games)}
-                                        </div>
-
-                                        {/* Mode Breakdown */}
-                                        <div>
-                                            <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Game Modes</h4>
-                                            {renderStatRow("All Pick", allPick.win, allPick.games)}
-                                            {renderStatRow("Other", other.win, other.games)}
-                                        </div>
-
-                                        {/* Faction Breakdown */}
-                                        <div>
-                                            <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Faction</h4>
-                                            {renderStatRow("Radiant", radiant.win, radiant.games)}
-                                            {renderStatRow("Dire", dire.win, dire.games)}
-                                        </div>
-                                    </div>
-                                );
-                            })() : (
-                                <div className="py-8 text-center text-theme-dim flex flex-col items-center justify-center border border-dashed border-theme-dim/30">
-                                    <span className="uppercase text-[10px] mb-1">Detailed Stats Unavailable</span>
-                                    <span className="text-[9px] opacity-50">Data fetch failed or empty</span>
-                                </div>
-                            )}
-                            
+                <div className="grid grid-cols-3 gap-2 md:gap-4 text-center z-10 w-full md:w-auto">
+                    <div className="bg-black/50 px-2 py-2 border border-theme-dim">
+                        <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Wins</div>
+                        <div className="text-theme font-bold text-base md:text-lg">{wl?.win || 0}</div>
+                    </div>
+                    <div className="bg-black/50 px-2 py-2 border border-theme-dim">
+                        <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Losses</div>
+                        <div className="text-theme opacity-70 font-bold text-base md:text-lg">{wl?.lose || 0}</div>
+                    </div>
+                    <div className="bg-black/50 px-2 py-2 border border-theme-dim">
+                        <div className="text-[9px] md:text-[10px] text-theme-dim uppercase tracking-wider mb-1">Ratio</div>
+                        <div className="font-bold text-base md:text-lg text-theme glow-text">
+                            {winRate}%
                         </div>
                     </div>
                 </div>
-             </div>
-         )}
+            </div>
 
-         {activeTab === 'heroes' && (
-             <div>
-                {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left text-xs min-w-[450px]">
-                           <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
-                              <tr>
-                                <th className="p-3">Unit_Designation</th>
-                                <th className="p-3 text-center">Deployments</th>
-                                <th className="p-3 text-center">Success_Rate</th>
-                                <th className="p-3 text-center">Last_Active</th>
-                              </tr>
-                           </thead>
-                           <tbody className="divide-y divide-theme-dim">
-                              {heroes.slice(0, 20).map(h => {
-                                  const wr = (h.win / h.games) * 100;
-                                  return (
-                                    <tr key={h.hero_id} className="hover:bg-white/5 transition-colors">
-                                        <td className="p-3 flex items-center gap-3">
-                                            <img src={getHeroImageUrl(h.hero_id)} className="w-12 h-auto border border-theme-dim opacity-80" alt="" />
-                                            <span className="font-bold text-theme uppercase truncate max-w-[150px]">{getHeroName(h.hero_id)}</span>
-                                        </td>
-                                        <td className="p-3 text-center text-theme-dim font-mono">{h.games}</td>
-                                        <td className="p-3 text-center">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <div className="w-12 h-1 bg-theme-dim">
-                                                    <div className="h-full bg-theme" style={{width: `${wr}%`}} />
+            {/* Tabs */}
+            <div className="flex border-b border-theme-dim bg-black/40 overflow-x-auto custom-scrollbar">
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'overview' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+                >
+                    <History className="w-4 h-4" /> [HISTORY]
+                </button>
+                <button
+                    onClick={() => setActiveTab('heroes')}
+                    className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'heroes' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+                >
+                    <LayoutGrid className="w-4 h-4" /> [HEROES]
+                </button>
+                <button
+                    onClick={() => setActiveTab('peers')}
+                    className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'peers' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+                >
+                    <Users className="w-4 h-4" /> [PARTY]
+                </button>
+                <button
+                    onClick={() => setActiveTab('wordcloud')}
+                    className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'wordcloud' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+                >
+                    <MessageSquare className="w-4 h-4" /> [CHAT]
+                </button>
+                <button
+                    onClick={() => setActiveTab('wardmap')}
+                    className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'wardmap' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+                >
+                    <MapPin className="w-4 h-4" /> [WARD MAP]
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="min-h-[400px] terminal-box p-4 border-t-0">
+                {activeTab === 'overview' && (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2">
+                                <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2"><HardDrive className="w-4 h-4" /> Recent_Activity_Feed</h3>
+                                <MatchList matches={matches} onMatchClick={onMatchClick} />
+                            </div>
+                            <div>
+                                <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2"><BarChart3 className="w-4 h-4" /> Quick_Stats</h3>
+                                <div className="bg-black/50 p-4 border border-theme-dim text-xs font-mono">
+
+                                    {/* Lifetime Overview */}
+                                    <div className="mb-6">
+                                        <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lifetime Overview</h4>
+                                        <div className="flex justify-between items-end mb-1">
+                                            <span className="uppercase text-theme-dim">Total Matches</span>
+                                            <span className="text-theme font-bold text-lg">{(wl?.win || 0) + (wl?.lose || 0)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="uppercase text-theme-dim">Overall Win Rate</span>
+                                            <span className={`font-bold ${parseFloat(winRate) >= 50 ? 'text-theme' : 'text-theme opacity-80'}`}>{winRate}%</span>
+                                        </div>
+                                        <div className="text-[10px] uppercase text-theme-dim mt-2 opacity-60 text-right">
+                                            {(wl?.win || 0) + (wl?.lose || 0) > 0 ? ">> STATS_RECORDED" : ">> NO_STATS_RECORDED"}
+                                        </div>
+                                    </div>
+
+                                    {counts ? (() => {
+                                        // Preparation
+                                        const normal = getSafeCount(counts.lobby_type, '0'); // Public matchmaking
+                                        const ranked = getSafeCount(counts.lobby_type, '7'); // Ranked
+
+                                        const allPick = {
+                                            games: getSafeCount(counts.game_mode, '1').games + getSafeCount(counts.game_mode, '22').games,
+                                            win: getSafeCount(counts.game_mode, '1').win + getSafeCount(counts.game_mode, '22').win
+                                        };
+
+                                        // To calculate 'Other', subtract AP from total games in game_mode counts
+                                        let totalGamesGM = 0;
+                                        let totalWinsGM = 0;
+                                        if (counts.game_mode) {
+                                            Object.values(counts.game_mode).forEach((c: CountMetric) => { totalGamesGM += c.games; totalWinsGM += c.win; });
+                                        }
+
+                                        const other = {
+                                            games: totalGamesGM - allPick.games,
+                                            win: totalWinsGM - allPick.win
+                                        };
+
+                                        const radiant = getSafeCount(counts.is_radiant, '1');
+                                        const dire = getSafeCount(counts.is_radiant, '0');
+
+                                        return (
+                                            <div className="space-y-6">
+                                                {/* Lobby Breakdown */}
+                                                <div>
+                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lobby Breakdown</h4>
+                                                    <div className="flex justify-between text-[9px] uppercase text-theme-dim mb-1 px-1">
+                                                        <span>Type</span>
+                                                        <div className="flex gap-4"><span>Games</span><span>Win%</span></div>
+                                                    </div>
+                                                    {renderStatRow("Normal", normal.win, normal.games)}
+                                                    {renderStatRow("Ranked", ranked.win, ranked.games)}
                                                 </div>
-                                                <span className="text-theme font-mono">{wr.toFixed(0)}%</span>
+
+                                                {/* Mode Breakdown */}
+                                                <div>
+                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Game Modes</h4>
+                                                    {renderStatRow("All Pick", allPick.win, allPick.games)}
+                                                    {renderStatRow("Other", other.win, other.games)}
+                                                </div>
+
+                                                {/* Faction Breakdown */}
+                                                <div>
+                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Faction</h4>
+                                                    {renderStatRow("Radiant", radiant.win, radiant.games)}
+                                                    {renderStatRow("Dire", dire.win, dire.games)}
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td className="p-3 text-center text-theme-dim font-mono">
-                                            {new Date(h.last_played * 1000).toLocaleDateString()}
-                                        </td>
-                                    </tr>
-                                  )
-                              })}
-                           </tbody>
-                        </table>
+                                        );
+                                    })() : (
+                                        <div className="py-8 text-center text-theme-dim flex flex-col items-center justify-center border border-dashed border-theme-dim/30">
+                                            <span className="uppercase text-[10px] mb-1">Detailed Stats Unavailable</span>
+                                            <span className="text-[9px] opacity-50">Data fetch failed or empty</span>
+                                        </div>
+                                    )}
+
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
-             </div>
-         )}
 
-         {activeTab === 'peers' && (
-            <div>
-                 {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left text-xs min-w-[450px]">
-                           <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
-                              <tr>
-                                <th className="p-3">Ally_Identity</th>
-                                <th className="p-3 text-center">Co_Ops</th>
-                                <th className="p-3 text-center">Synergy</th>
-                                <th className="p-3 text-center">Last_Contact</th>
-                              </tr>
-                           </thead>
-                           <tbody className="divide-y divide-theme-dim">
-                              {peers.slice(0, 25).map(p => { 
-                                  const wr = (p.with_win / p.with_games) * 100;
-                                  return (
-                                    <tr key={p.account_id} className="hover:bg-white/5 cursor-pointer transition-colors group" onClick={() => onPeerClick(p.account_id)}>
-                                        <td className="p-3 flex items-center gap-3">
-                                            <img src={p.avatar} className="w-8 h-8 rounded-full border border-theme-dim opacity-80 group-hover:opacity-100" alt="" onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/32'} />
-                                            <span className="font-bold text-theme uppercase group-hover:underline truncate max-w-[150px]">{p.personaname}</span>
-                                        </td>
-                                        <td className="p-3 text-center text-theme-dim font-mono">{p.with_games}</td>
-                                        <td className="p-3 text-center">
-                                            <span className="text-theme font-mono">{wr.toFixed(0)}%</span>
-                                        </td>
-                                        <td className="p-3 text-center text-theme-dim font-mono">
-                                            {new Date(p.last_played * 1000).toLocaleDateString()}
-                                        </td>
-                                    </tr>
-                                  )
-                              })}
-                              {peers.length === 0 && (
-                                  <tr><td colSpan={4} className="p-8 text-center text-theme-dim uppercase text-xs">No network data detected.</td></tr>
-                              )}
-                           </tbody>
-                        </table>
+                {activeTab === 'heroes' && (
+                    <div>
+                        {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left text-xs min-w-[450px]">
+                                    <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
+                                        <tr>
+                                            <th className="p-3">Hero</th>
+                                            <th className="p-3 text-center">Matches</th>
+                                            <th className="p-3 text-center">Win Rate</th>
+                                            <th className="p-3 text-center">Last Played</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-theme-dim">
+                                        {heroes.slice(0, 20).map(h => {
+                                            const wr = (h.win / h.games) * 100;
+                                            return (
+                                                <tr key={h.hero_id} className="hover:bg-white/5 transition-colors">
+                                                    <td className="p-3 flex items-center gap-3">
+                                                        <img src={getHeroImageUrl(h.hero_id)} className="w-12 h-auto border border-theme-dim opacity-80" alt="" />
+                                                        <span className="font-bold text-theme uppercase truncate max-w-[150px]">{getHeroName(h.hero_id)}</span>
+                                                    </td>
+                                                    <td className="p-3 text-center text-theme-dim font-mono">{h.games}</td>
+                                                    <td className="p-3 text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <div className="w-12 h-1 bg-theme-dim">
+                                                                <div className="h-full bg-theme" style={{ width: `${wr}%` }} />
+                                                            </div>
+                                                            <span className="text-theme font-mono">{wr.toFixed(0)}%</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3 text-center text-theme-dim font-mono">
+                                                        {new Date(h.last_played * 1000).toLocaleDateString()}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
-                 )}
-            </div>
-         )}
+                )}
 
-         {activeTab === 'wordcloud' && (
-            <div>
-               <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2">
-                   <MessageSquare className="w-4 h-4"/> Communication_Analysis // Word_Cloud
-               </h3>
-               {renderWordCloud()}
+                {activeTab === 'peers' && (
+                    <div>
+                        {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left text-xs min-w-[450px]">
+                                    <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
+                                        <tr>
+                                            <th className="p-3">Player</th>
+                                            <th className="p-3 text-center">Games</th>
+                                            <th className="p-3 text-center">Win Rate</th>
+                                            <th className="p-3 text-center">Last Played</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-theme-dim">
+                                        {peers.slice(0, 25).map(p => {
+                                            const wr = (p.with_win / p.with_games) * 100;
+                                            return (
+                                                <tr key={p.account_id} className="hover:bg-white/5 cursor-pointer transition-colors group" onClick={() => onPeerClick(p.account_id)}>
+                                                    <td className="p-3 flex items-center gap-3">
+                                                        <img src={p.avatar} className="w-8 h-8 rounded-full border border-theme-dim opacity-80 group-hover:opacity-100" alt="" onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/32'} />
+                                                        <span className="font-bold text-theme uppercase group-hover:underline truncate max-w-[150px]">{p.personaname}</span>
+                                                    </td>
+                                                    <td className="p-3 text-center text-theme-dim font-mono">{p.with_games}</td>
+                                                    <td className="p-3 text-center">
+                                                        <span className="text-theme font-mono">{wr.toFixed(0)}%</span>
+                                                    </td>
+                                                    <td className="p-3 text-center text-theme-dim font-mono">
+                                                        {new Date(p.last_played * 1000).toLocaleDateString()}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                        {peers.length === 0 && (
+                                            <tr><td colSpan={4} className="p-8 text-center text-theme-dim uppercase text-xs">No network data detected.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'wordcloud' && (
+                    <div>
+                        <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4" /> Communication_Analysis // Word_Cloud
+                        </h3>
+                        {renderWordCloud()}
+                    </div>
+                )}
+
+                {activeTab === 'wardmap' && (
+                    <div>
+                        <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2">
+                            <MapPin className="w-4 h-4" /> Tactical_Analysis // Ward_Map
+                        </h3>
+                        {loadingTab ? (
+                            <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" />
+                        ) : (
+                            <WardMapViewer wardMap={wardMap} />
+                        )}
+                    </div>
+                )}
             </div>
-         )}
-      </div>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default PlayerHub;

@@ -4,10 +4,8 @@ import {
   ensureExtendedHeroData, 
   getHeroAbilities, 
   getHeroTalents,
-  getHeroFacets, 
   getAbilityImageUrl, 
-  getHeroImageUrl,
-  getFacetIconUrl
+  getHeroImageUrl
 } from '../services/heroService';
 import { Loader2, X, Shield, Sword, Footprints, Zap, Brain } from 'lucide-react';
 
@@ -20,7 +18,6 @@ const HeroDetailModal: React.FC<HeroDetailModalProps> = ({ hero, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [abilities, setAbilities] = useState<any[]>([]);
   const [talents, setTalents] = useState<any[]>([]);
-  const [facets, setFacets] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,7 +25,6 @@ const HeroDetailModal: React.FC<HeroDetailModalProps> = ({ hero, onClose }) => {
       await ensureExtendedHeroData();
       setAbilities(getHeroAbilities(hero.id));
       setTalents(getHeroTalents(hero.id));
-      setFacets(getHeroFacets(hero.id));
       setLoading(false);
     };
     fetchData();
@@ -56,7 +52,19 @@ const HeroDetailModal: React.FC<HeroDetailModalProps> = ({ hero, onClose }) => {
   };
 
   const renderTalentTree = () => {
-    const levels = [25, 20, 15, 10];
+    const levels = [
+        { display: 25, internal: 4 },
+        { display: 20, internal: 3 },
+        { display: 15, internal: 2 },
+        { display: 10, internal: 1 }
+    ];
+
+    const formatTalentName = (name: string | undefined) => {
+        if (!name) return '—';
+        // Replace raw variables like {s:bonus_damage} with [X]
+        return name.replace(/\{s:[^}]+\}[a-zA-Z%]*/g, '[X]');
+    };
+
     return (
         <div className="relative mt-8 p-4 bg-gradient-to-b from-black/60 to-black/20 border border-theme-dim/30 rounded-sm overflow-hidden group">
              {/* Background Tree SVG - Opacity Overlay */}
@@ -70,24 +78,24 @@ const HeroDetailModal: React.FC<HeroDetailModalProps> = ({ hero, onClose }) => {
              </h3>
 
              <div className="relative z-10 space-y-4">
-                 {levels.map(lvl => {
+                 {levels.map(({display, internal}) => {
                      // Find talents for this level
-                     const tierTalents = talents.filter((t: any) => t.level === lvl);
+                     const tierTalents = talents.filter((t: any) => t.level === internal || t.level === display);
                      const left = tierTalents[0];
                      const right = tierTalents[1]; // Usually standard is 2 choices
 
                      return (
-                         <div key={lvl} className="flex items-center gap-2 md:gap-6 text-[10px] md:text-xs">
+                         <div key={display} className="flex items-center gap-2 md:gap-6 text-[10px] md:text-xs">
                              <div className="flex-1 text-right text-theme-dim/90 py-2 px-3 bg-black/60 border border-transparent hover:border-theme-dim/50 hover:text-white transition-colors rounded-sm shadow-sm h-full flex items-center justify-end">
-                                 {left?.dname || '—'}
+                                 {formatTalentName(left?.dname)}
                              </div>
                              
                              <div className="shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-theme-dim bg-black flex items-center justify-center font-bold text-theme shadow-[0_0_15px_rgba(74,222,128,0.15)] z-20">
-                                 {lvl}
+                                 {display}
                              </div>
                              
                              <div className="flex-1 text-left text-theme-dim/90 py-2 px-3 bg-black/60 border border-transparent hover:border-theme-dim/50 hover:text-white transition-colors rounded-sm shadow-sm h-full flex items-center justify-start">
-                                 {right?.dname || '—'}
+                                 {formatTalentName(right?.dname)}
                              </div>
                          </div>
                      );
@@ -224,7 +232,7 @@ const HeroDetailModal: React.FC<HeroDetailModalProps> = ({ hero, onClose }) => {
                                             src={getAbilityImageUrl(ability.name)} 
                                             alt={ability.dname} 
                                             className="w-16 h-16 md:w-20 md:h-20 bg-black border border-theme-dim shadow-lg object-cover"
-                                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64?text=?' }}
+                                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/abilities/empty.png' }}
                                         />
                                     </div>
                                     <div className="flex-1">
@@ -271,34 +279,6 @@ const HeroDetailModal: React.FC<HeroDetailModalProps> = ({ hero, onClose }) => {
 
                     {/* Talent Tree Section */}
                     {renderTalentTree()}
-
-                    {/* Facets Section */}
-                    {facets.length > 0 && (
-                        <div>
-                            <h3 className="text-lg font-bold text-theme uppercase tracking-wider mb-4 flex items-center gap-2 pb-2 border-b border-theme-dim mt-8">
-                                <Brain className="w-5 h-5" /> Facets
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {facets.map((facet: any, idx: number) => (
-                                    <div key={idx} className="bg-gradient-to-br from-black to-white/5 border border-theme-dim p-4 flex gap-4">
-                                        <div className="shrink-0 pt-1">
-                                            {facet.icon && (
-                                                <img 
-                                                    src={getFacetIconUrl(facet.icon)} 
-                                                    alt="" 
-                                                    className="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(255,255,255,0.2)]"
-                                                />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-theme uppercase text-sm mb-2 tracking-wide">{facet.title || facet.name}</h4>
-                                            <p className="text-xs text-theme-dim/80 font-sans leading-relaxed" dangerouslySetInnerHTML={{__html: facet.description}}></p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </>
             )}
         </div>

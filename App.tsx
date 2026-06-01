@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import PlayerForm from './components/PlayerForm';
 import PlayerHub from './components/PlayerHub';
 import MatchDetailView from './components/MatchDetailView';
@@ -6,16 +7,6 @@ import HeroesView from './components/HeroesView';
 import ProMatchesView from './components/ProMatchesView';
 import { Search, Loader2, Settings, X, Terminal, Swords, Gamepad2 } from 'lucide-react';
 import { ensureHeroData } from './services/heroService';
-
-type ViewType = 'HOME' | 'PLAYER' | 'MATCH' | 'HEROES' | 'PRO_CIRCUIT';
-
-interface AppState {
-  view: ViewType;
-  params: {
-    accountId?: number;
-    matchId?: number;
-  };
-}
 
 const THEMES = [
   { name: 'Phosphor Green', value: '#4ade80' },
@@ -32,11 +23,28 @@ const ASCII_ART = `██████╗  ██████╗ █████�
 ██████╔╝╚██████╔╝   ██║   ██║  ██║       ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
 ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝`;
 
+// Wrapper component to pass route params to MatchDetailView
+const MatchDetailWrapper: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    if (!id) return null;
+    return <MatchDetailView matchId={parseInt(id, 10)} onPlayerClick={(accountId) => navigate(`/player/${accountId}`)} onBack={() => navigate(-1)} />;
+};
+
+// Wrapper component to pass route params to PlayerHub
+const PlayerHubWrapper: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    if (!id) return null;
+    return <PlayerHub accountId={parseInt(id, 10)} onMatchClick={(matchId) => navigate(`/match/${matchId}`)} onPeerClick={(accountId) => navigate(`/player/${accountId}`)} />;
+};
+
 const App: React.FC = () => {
-  const [state, setState] = useState<AppState>({ view: 'HOME', params: {} });
   const [appReady, setAppReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [themeColor, setThemeColor] = useState(localStorage.getItem('crt-theme') || '#4ade80');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     ensureHeroData().then(() => setAppReady(true));
@@ -46,32 +54,6 @@ const App: React.FC = () => {
     document.documentElement.style.setProperty('--theme-color', themeColor);
     localStorage.setItem('crt-theme', themeColor);
   }, [themeColor]);
-
-  const navigateToPlayer = (id: number) => {
-    setState({ view: 'PLAYER', params: { accountId: id } });
-  };
-
-  const navigateToMatch = (id: number) => {
-    setState(prev => ({ 
-      view: 'MATCH', 
-      params: { 
-        ...prev.params,
-        matchId: id 
-      } 
-    }));
-  };
-
-  const navigateToHeroes = () => {
-    setState({ view: 'HEROES', params: {} });
-  };
-
-  const navigateToProCircuit = () => {
-    setState({ view: 'PRO_CIRCUIT', params: {} });
-  };
-
-  const goHome = () => {
-    setState({ view: 'HOME', params: {} });
-  };
 
   if (!appReady) {
     return (
@@ -130,7 +112,7 @@ const App: React.FC = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div 
              className="flex items-center gap-3 cursor-pointer group"
-             onClick={goHome}
+             onClick={() => navigate('/')}
           >
              <div className="w-8 h-8 border border-theme flex items-center justify-center group-hover:bg-theme group-hover:text-black transition-colors shrink-0">
                 <Terminal className="w-5 h-5" />
@@ -140,22 +122,22 @@ const App: React.FC = () => {
           
           <div className="flex items-center gap-3 sm:gap-6">
              <button 
-                onClick={navigateToHeroes} 
-                className={getNavButtonClass(state.view === 'HEROES')}
+                onClick={() => navigate('/heroes')} 
+                className={getNavButtonClass(location.pathname === '/heroes')}
              >
                 <Swords className="w-4 h-4" /> <span className="hidden sm:inline">HEROES</span>
              </button>
              
              <button 
-                onClick={navigateToProCircuit} 
-                className={getNavButtonClass(state.view === 'PRO_CIRCUIT')}
+                onClick={() => navigate('/pro')} 
+                className={getNavButtonClass(location.pathname === '/pro')}
              >
                 <Gamepad2 className="w-4 h-4" /> <span className="hidden sm:inline">PRO CIRCUIT</span>
              </button>
 
              <button 
-                onClick={goHome}
-                className={getNavButtonClass(state.view === 'HOME')}
+                onClick={() => navigate('/')}
+                className={getNavButtonClass(location.pathname === '/')}
              >
                <Search className="w-4 h-4" /> <span className="hidden sm:inline">SEARCH</span>
              </button>
@@ -173,57 +155,34 @@ const App: React.FC = () => {
 
       {/* Main Content Router */}
       <main className="container mx-auto px-4 py-8 relative z-10 flex-grow">
-        
-        {state.view === 'HOME' && (
-           <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-              <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4 border-0 border-b border-current">
-                {ASCII_ART}
-              </pre>
-              <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
-                ACCESSING DOTA DATABASE...<br/>
-                ENTER ACCOUNT ID BELOW.
-              </p>
-              
-              <PlayerForm onSubmit={navigateToPlayer} isLoading={false} />
+        <Routes>
+          <Route path="/" element={
+            <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
+               <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4 border-0 border-b border-current">
+                 {ASCII_ART}
+               </pre>
+               <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
+                 ACCESSING DOTA DATABASE...<br/>
+                 ENTER ACCOUNT ID BELOW.
+               </p>
+               
+               <PlayerForm onSubmit={(id) => navigate(`/player/${id}`)} isLoading={false} />
 
-              <div className="mt-12 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
-                  <button onClick={navigateToHeroes} className="hover-bg-theme border border-theme text-theme px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs w-full sm:w-auto text-center">
-                      [BROWSE_HEROES]
-                  </button>
-                  <button onClick={() => navigateToMatch(7562624925)} className="hover-bg-theme-dim border border-theme-dim text-theme-dim px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs hover:text-theme hover:border-theme w-full sm:w-auto text-center">
-                      [SAMPLE_MATCH]
-                  </button>
-              </div>
-           </div>
-        )}
-
-        {state.view === 'PLAYER' && state.params.accountId && (
-           <PlayerHub 
-              accountId={state.params.accountId} 
-              onMatchClick={navigateToMatch}
-              onPeerClick={navigateToPlayer}
-           />
-        )}
-
-        {state.view === 'MATCH' && state.params.matchId && (
-           <MatchDetailView 
-              matchId={state.params.matchId} 
-              onPlayerClick={navigateToPlayer}
-              onBack={() => {
-                   if(state.params.accountId) navigateToPlayer(state.params.accountId);
-                   else goHome();
-              }}
-           />
-        )}
-
-        {state.view === 'HEROES' && (
-           <HeroesView />
-        )}
-
-        {state.view === 'PRO_CIRCUIT' && (
-           <ProMatchesView onMatchClick={navigateToMatch} />
-        )}
-
+               <div className="mt-12 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
+                   <button onClick={() => navigate('/heroes')} className="hover-bg-theme border border-theme text-theme px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs w-full sm:w-auto text-center">
+                       [BROWSE_HEROES]
+                   </button>
+                   <button onClick={() => navigate('/match/7562624925')} className="hover-bg-theme-dim border border-theme-dim text-theme-dim px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs hover:text-theme hover:border-theme w-full sm:w-auto text-center">
+                       [SAMPLE_MATCH]
+                   </button>
+               </div>
+            </div>
+          } />
+          <Route path="/player/:id" element={<PlayerHubWrapper />} />
+          <Route path="/match/:id" element={<MatchDetailWrapper />} />
+          <Route path="/heroes" element={<HeroesView />} />
+          <Route path="/pro" element={<ProMatchesView onMatchClick={(id) => navigate(`/match/${id}`)} />} />
+        </Routes>
       </main>
 
       <footer className="border-t border-theme-dim py-8 text-center text-theme-dim text-[10px] md:text-xs uppercase tracking-widest opacity-50 relative z-10 px-4">

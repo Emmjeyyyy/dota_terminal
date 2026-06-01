@@ -27,8 +27,10 @@ export const ensureExtendedHeroData = async (): Promise<void> => {
   if (Object.keys(heroExtendedMap).length > 0 && Object.keys(abilitiesMap).length > 0) return;
   
   try {
+    await ensureHeroData(); // Ensure we have the name mapping
+
     const [heroesRes, abilitiesRes] = await Promise.all([
-      fetch('https://api.opendota.com/api/constants/heroes'),
+      fetch('https://api.opendota.com/api/constants/hero_abilities'),
       fetch('https://api.opendota.com/api/constants/abilities')
     ]);
 
@@ -57,7 +59,8 @@ export const getHeroImageUrl = (id: number): string => {
 };
 
 export const getHeroAbilities = (heroId: number): any[] => {
-  const hero = heroExtendedMap[heroId.toString()];
+  const internalName = heroNameMap[heroId];
+  const hero = internalName ? heroExtendedMap[internalName] : null;
   if (!hero || !hero.abilities) return [];
   
   // Map ability names to their details
@@ -71,7 +74,8 @@ export const getHeroAbilities = (heroId: number): any[] => {
 };
 
 export const getHeroTalents = (heroId: number): any[] => {
-  const hero = heroExtendedMap[heroId.toString()];
+  const internalName = heroNameMap[heroId];
+  const hero = internalName ? heroExtendedMap[internalName] : null;
   if (!hero || !hero.talents) return [];
 
   return hero.talents.map((t: any) => {
@@ -84,15 +88,6 @@ export const getHeroTalents = (heroId: number): any[] => {
   });
 };
 
-export const getHeroFacets = (heroId: number): any[] => {
-  const hero = heroExtendedMap[heroId.toString()];
-  return hero?.facets || [];
-};
-
 export const getAbilityImageUrl = (abilityName: string): string => {
   return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/abilities/${abilityName}.png`;
-};
-
-export const getFacetIconUrl = (iconName: string): string => {
-   return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/facets/${iconName}.png`;
 };

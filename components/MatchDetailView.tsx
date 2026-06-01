@@ -66,21 +66,28 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
   // Compute party indicators
   const partyMapping = useMemo(() => {
       if (!match) return new Map<number, string>();
+      
+      // First, count occurrences of each party_id
+      const partyCounts = new Map<number, number>();
+      match.players.forEach(p => {
+          // OpenDota party_id can be 0 (it's a 0-indexed integer for parties), so don't check truthiness or > 0
+          if (p.party_id !== undefined && p.party_id !== null) {
+              partyCounts.set(p.party_id, (partyCounts.get(p.party_id) || 0) + 1);
+          }
+      });
+
       const mapping = new Map<number, string>();
       let currentRoman = 0;
       const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
       
-      const seenParties = new Set<number>();
-      
-      match.players.forEach(p => {
-          if (p.party_id && (p.party_size || 0) > 1) {
-              if (!seenParties.has(p.party_id)) {
-                  seenParties.add(p.party_id);
-                  mapping.set(p.party_id, romans[currentRoman % romans.length]);
-                  currentRoman++;
-              }
+      // Assign roman numerals to parties with > 1 player
+      partyCounts.forEach((count, partyId) => {
+          if (count > 1) {
+              mapping.set(partyId, romans[currentRoman % romans.length]);
+              currentRoman++;
           }
       });
+      
       return mapping;
   }, [match]);
 
@@ -239,7 +246,7 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
                   {teamPlayers.map((p) => {
                       const netWorth = p.net_worth || p.total_gold || (p.gold_per_min * match.duration / 60);
                       const itemIds = [p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5];
-                      const partyRoman = (p.party_id && (p.party_size || 0) > 1) ? partyMapping.get(p.party_id) : null;
+                      const partyRoman = p.party_id !== undefined && p.party_id !== null ? partyMapping.get(p.party_id) : null;
                       
                       return (
                           <div key={p.player_slot} className="flex items-center py-2 px-4 hover:bg-white/5 transition-colors group">
