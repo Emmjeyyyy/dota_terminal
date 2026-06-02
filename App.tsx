@@ -166,14 +166,11 @@ const App: React.FC = () => {
                    {ASCII_ART}
                  </pre>
                </div>
-               <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
-                 ACCESSING DOTA DATABASE...<br/>
-                 ENTER ACCOUNT ID BELOW.
-               </p>
+
                
                <PlayerForm onSubmit={(id) => navigate(`/player/${id}`)} isLoading={false} />
 
-               <div className="mt-12 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
+               <div className="mt-4 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
                    <button onClick={() => navigate('/heroes')} className="hover-bg-theme border border-theme text-theme px-6 py-3 font-bold transition-all uppercase tracking-widest text-xs w-full sm:w-auto text-center">
                        [BROWSE_HEROES]
                    </button>
