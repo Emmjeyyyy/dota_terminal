@@ -137,7 +137,7 @@ const App: React.FC = () => {
              <div className="w-8 h-8 border border-theme flex items-center justify-center shrink-0">
                 <Terminal className="w-5 h-5" />
              </div>
-             <span className="text-lg font-bold tracking-tight glow-text hidden sm:block">DOTA_TERMINAL</span>
+             <span className="text-lg font-bold tracking-tight glow-text">DOTA_TERMINAL</span>
           </div>
           
           <div className="flex items-center gap-3 sm:gap-6">
@@ -171,7 +171,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={
             <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-               <div className="w-full max-w-full overflow-x-auto flex justify-center mb-8 border-0 border-b border-current p-4 scrollbar-hide md:overflow-visible">
+               <div className="w-full max-w-full overflow-x-auto hidden sm:flex justify-center mb-8 border-0 border-b border-current p-4 scrollbar-hide md:overflow-visible">
                  <pre className="font-mono text-[3.5px] min-[375px]:text-[4.5px] sm:text-[7px] md:text-[10px] leading-[1.1] text-theme glow-text whitespace-pre select-none">
                    {ASCII_ART}
                  </pre>
