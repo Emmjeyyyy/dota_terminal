@@ -171,10 +171,16 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={
             <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-               <div className="w-full max-w-full overflow-x-auto flex justify-center mb-8 border-0 border-b border-current p-4 scrollbar-hide md:overflow-visible">
-                 <pre className="font-mono text-[3.5px] min-[375px]:text-[4.5px] sm:text-[7px] md:text-[10px] leading-[1.1] text-theme glow-text whitespace-pre select-none">
-                   {ASCII_ART}
-                 </pre>
+               <div className="w-full max-w-[600px] flex justify-center mb-8 border-b border-theme-dim p-4">
+                 <svg viewBox="0 0 580 80" className="w-full h-auto text-theme glow-text drop-shadow-[0_0_10px_color-mix(in_srgb,var(--theme-color),transparent_70%)]">
+                   <foreignObject width="580" height="80">
+                     <div xmlns="http://www.w3.org/1999/xhtml" className="w-full h-full flex items-center justify-center">
+                       <pre className="font-mono text-[10px] leading-[1.1] text-theme whitespace-pre select-none m-0 p-0">
+                         {ASCII_ART}
+                       </pre>
+                     </div>
+                   </foreignObject>
+                 </svg>
                </div>
 
                
