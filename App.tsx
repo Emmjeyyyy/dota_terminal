@@ -5,7 +5,6 @@ import PlayerForm from './components/PlayerForm';
 import PlayerHub from './components/PlayerHub';
 import MatchDetailView from './components/MatchDetailView';
 import HeroesView from './components/HeroesView';
-import ProMatchesView from './components/ProMatchesView';
 import { Search, Loader2, Settings, X, Terminal, Swords, Gamepad2 } from 'lucide-react';
 import { ensureHeroData } from './services/heroService';
 
@@ -122,10 +121,10 @@ const App: React.FC = () => {
       <header className="border-b border-theme-dim sticky top-0 z-50 bg-black/90 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div 
-             className="flex items-center gap-3 cursor-pointer group"
+             className="flex items-center gap-3 cursor-pointer"
              onClick={() => navigate('/')}
           >
-             <div className="w-8 h-8 border border-theme flex items-center justify-center group-hover:bg-theme group-hover:text-black transition-colors shrink-0">
+             <div className="w-8 h-8 border border-theme flex items-center justify-center shrink-0">
                 <Terminal className="w-5 h-5" />
              </div>
              <span className="text-lg font-bold tracking-tight glow-text hidden sm:block">DOTA_TERMINAL</span>
@@ -137,13 +136,6 @@ const App: React.FC = () => {
                 className={getNavButtonClass(location.pathname === '/heroes')}
              >
                 <Swords className="w-4 h-4" /> <span className="hidden sm:inline">HEROES</span>
-             </button>
-             
-             <button 
-                onClick={() => navigate('/pro')} 
-                className={getNavButtonClass(location.pathname === '/pro')}
-             >
-                <Gamepad2 className="w-4 h-4" /> <span className="hidden sm:inline">PRO CIRCUIT</span>
              </button>
 
              <button 
@@ -194,7 +186,6 @@ const App: React.FC = () => {
           <Route path="/player/:id" element={<PlayerHubWrapper />} />
           <Route path="/match/:id" element={<MatchDetailWrapper />} />
           <Route path="/heroes" element={<HeroesView />} />
-          <Route path="/pro" element={<ProMatchesView onMatchClick={(id) => navigate(`/match/${id}`)} />} />
         </Routes>
       </main>
 
