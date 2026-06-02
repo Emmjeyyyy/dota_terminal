@@ -171,10 +171,12 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={
             <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-               <div className="w-full max-w-full overflow-x-auto flex justify-center mb-8 border-0 border-b border-current p-4 scrollbar-hide md:overflow-visible">
-                 <pre className="font-mono text-[3.5px] min-[375px]:text-[4.5px] sm:text-[7px] md:text-[10px] leading-[1.1] text-theme glow-text whitespace-pre select-none">
-                   {ASCII_ART}
-                 </pre>
+               <div className="w-full flex items-center justify-center h-[12vw] min-[375px]:h-[15vw] sm:h-[70px] md:h-[80px] mb-8 border-b border-theme-dim pb-4 overflow-hidden box-content">
+                 <div className="scale-[0.45] min-[375px]:scale-[0.55] sm:scale-[0.75] md:scale-100 transition-transform origin-center flex justify-center">
+                   <pre className="font-mono text-[10px] leading-[1.1] text-theme glow-text whitespace-pre select-none">
+                     {ASCII_ART}
+                   </pre>
+                 </div>
                </div>
 
                
