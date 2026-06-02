@@ -202,3 +202,18 @@ export const getPlayerTotals = async (accountId: number): Promise<PlayerTotal[]>
     return [];
   }
 };
+
+export const getLatestPatch = async (): Promise<string> => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/constants/patch`);
+    if (!res.ok) return "UNKNOWN";
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      return data[data.length - 1].name;
+    }
+    return "UNKNOWN";
+  } catch (e) {
+    console.error("Error fetching patch:", e);
+    return "UNKNOWN";
+  }
+};

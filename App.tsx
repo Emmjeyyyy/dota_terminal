@@ -7,6 +7,7 @@ import MatchDetailView from './components/MatchDetailView';
 import HeroesView from './components/HeroesView';
 import { Search, Loader2, Settings, X, Terminal, Swords, Gamepad2 } from 'lucide-react';
 import { ensureHeroData } from './services/heroService';
+import { getLatestPatch } from './services/api';
 
 const THEMES = [
   { name: 'Phosphor Green', value: '#4ade80' },
@@ -52,11 +53,13 @@ const App: React.FC = () => {
   const [appReady, setAppReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [themeColor, setThemeColor] = useState(localStorage.getItem('crt-theme') || '#4ade80');
+  const [currentPatch, setCurrentPatch] = useState<string>('...');
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     ensureHeroData().then(() => setAppReady(true));
+    getLatestPatch().then(patch => setCurrentPatch(patch));
   }, []);
 
   useEffect(() => {
@@ -82,6 +85,13 @@ const App: React.FC = () => {
       {/* CRT Overlays */}
       <div className="scanlines pointer-events-none" />
       <div className="crt-overlay pointer-events-none" />
+      
+      {/* Sticky Patch Indicator */}
+      <div className="fixed bottom-2 left-2 z-50 pointer-events-none opacity-40">
+         <div className="px-2 py-1 text-[9px] md:text-[10px] text-theme font-mono uppercase tracking-widest">
+             PATCH // {currentPatch}
+         </div>
+      </div>
       
       {/* Settings Modal */}
       {showSettings && (
