@@ -7,13 +7,15 @@ const BOOT_LOGS = [
   "LOADING HERO POOL YOU NEVER ACTUALLY PLAY...",
   "BANNING INVOKER...",
   "SCANNING FOR POS 5 WHO FORGOT WARDS...",
-  "SYNCING WITH 0–30 MINUTE THROW DATABASE...",
-  "CALIBRATING CARRY EXPECTATIONS VS REALITY...",
   "DETECTING SMURFS AND QUESTIONABLE MATCHES...",
   "RECALIBRATING MMR AFTER LAST NIGHT'S LOSING STREAK...",
   "LOADING TEAM COMMUNICATION MODULE (ERROR: DISCONNECTED SUPPORT)...",
   "CHECKING INVENTORY FOR UNBUILT BLACK KING BAR...",
   "ANALYZING MINIMAP IGNORE RATE...",
+  "WARNING: SUPPORT HAS ENTERED CORE FARMING MODE...",
+  "LOADING HIGH RISK HIGH COPIUM STRATEGIES...",
+  "RENDERING EXCUSES FOR LAST MATCH PERFORMANCE...",
+  "SCANNING TEAM FOR GLYPH BUTTON PANIC PRESSER...",
   "PATCHING EXISTENTIAL REGRET FROM LAST TEAMFIGHT...",
   "FINALIZING MATCH PARAMETERS...",
   "SYSTEM READY. GOOD LUCK, YOU'LL NEED IT."
@@ -22,6 +24,33 @@ const BOOT_LOGS = [
 interface BootSequenceProps {
   onComplete: () => void;
 }
+
+const renderLog = (log: string) => {
+  if (!log) return null;
+  const errorMatch = log.match(/(\(ERROR:[^)]+\)(?:\.\.\.)?)/);
+  if (errorMatch) {
+    const parts = log.split(errorMatch[1]);
+    return (
+      <>
+        {parts[0]}
+        <span className="text-red-500 font-bold">{errorMatch[1]}</span>
+        {parts[1]}
+      </>
+    );
+  }
+
+  if (log.includes("WARNING:")) {
+    const parts = log.split("WARNING:");
+    return (
+      <>
+        {parts[0]}
+        <span className="text-yellow-400 font-bold">WARNING:{parts[1]}</span>
+      </>
+    );
+  }
+
+  return log;
+};
 
 const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
   const [logs, setLogs] = useState<string[]>([]);
@@ -76,25 +105,25 @@ const BootSequence: React.FC<BootSequenceProps> = ({ onComplete }) => {
       <div className="absolute inset-0 scanlines pointer-events-none" />
       <div className="absolute inset-0 crt-overlay pointer-events-none" />
 
-      <div className="flex-1 overflow-hidden flex flex-col justify-end max-w-3xl mx-auto w-full relative z-10 pb-12 sm:pb-20">
-        <div className="space-y-1 mb-4">
+      <div className="flex-1 overflow-hidden flex flex-col justify-end max-w-5xl mx-auto w-full relative z-10 pb-12 sm:pb-24">
+        <div className="space-y-2 md:space-y-3 mb-6">
           {logs.map((log, i) => (
-            <div key={i} className="text-xs sm:text-sm md:text-base opacity-80 glow-text break-all">
-              <span className="text-theme-dim mr-2">{'>'}</span> {log}
+            <div key={i} className="text-sm sm:text-base md:text-xl lg:text-2xl opacity-80 glow-text break-all">
+              <span className="text-theme-dim mr-2">{'>'}</span> {renderLog(log)}
             </div>
           ))}
           {/* Active typing cursor */}
           {!showProgress && (
-            <div className="text-xs sm:text-sm md:text-base glow-text">
+            <div className="text-sm sm:text-base md:text-xl lg:text-2xl glow-text">
               <span className="text-theme-dim mr-2">{'>'}</span><span className="animate-blink">█</span>
             </div>
           )}
         </div>
 
         {showProgress && (
-          <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-2 text-xs sm:text-sm md:text-base glow-text">
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base md:text-xl lg:text-2xl glow-text">
             <span>[</span>
-            <span className="font-bold tracking-[0.2em]">{Array(20).fill(0).map((_, i) => i < (progress / 5) ? '█' : '\u00A0').join('')}</span>
+            <span className="font-bold tracking-[0.2em]">{Array(40).fill(0).map((_, i) => i < (progress / 2.5) ? '█' : '\u00A0').join('')}</span>
             <span>]</span>
             <span className="ml-2">{progress}%</span>
           </div>
