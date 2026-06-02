@@ -9,7 +9,8 @@ import {
   GlobalHero,
   ProMatch,
   PlayerCounts,
-  WordCloud
+  WordCloud,
+  PlayerTotal
 } from '../types';
 
 // Queue-based rate limiter to ensure sequential requests
@@ -188,5 +189,16 @@ export const getPlayerWardmap = async (accountId: number): Promise<any | null> =
   } catch (e) {
     console.error("Error fetching wardmap:", e);
     return null;
+  }
+};
+
+export const getPlayerTotals = async (accountId: number): Promise<PlayerTotal[]> => {
+  try {
+    const res = await rateLimitedFetch(`${API_BASE_URL}/players/${accountId}/totals`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    console.error("Error fetching totals:", e);
+    return [];
   }
 };

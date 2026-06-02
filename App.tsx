@@ -187,7 +187,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="border-t border-theme-dim py-8 text-center text-theme-dim text-[10px] md:text-xs uppercase tracking-widest opacity-50 relative z-10 px-4">
-         <p>SYSTEM STATUS: ONLINE // DATA SOURCE: OPENDOTA  API</p>
+         <p>SYSTEM STATUS: ONLINE // DATA SOURCE: <a href="https://docs.opendota.com/" target="_blank" rel="noopener noreferrer" className="hover:text-theme hover:underline transition-colors glow-text">OPENDOTA API</a></p>
       </footer>
     </div>
     </QueryClientProvider>

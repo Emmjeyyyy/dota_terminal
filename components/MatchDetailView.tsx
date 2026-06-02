@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MatchDetail, MatchPlayerDetail } from '../types';
 import { getMatchDetails, requestMatchParse } from '../services/api';
 import { getHeroImageUrl } from '../services/heroService';
@@ -38,6 +39,66 @@ const XP_TABLE = [
   38400, 43400, 49400, 56400, 63900
 ];
 
+const AbilityIconWithTooltip: React.FC<{ ability: any, iconUrl: string, isTalent: boolean }> = ({ ability, iconUrl, isTalent }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const ref = useRef<HTMLDivElement>(null);
+
+  const updatePosition = () => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setCoords({
+        x: rect.left + rect.width / 2, // Centered horizontally
+        y: rect.top - 8, // Just above the element
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isHovered) {
+      updatePosition(); // Initial position
+      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition);
+      return () => {
+        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }
+  }, [isHovered]);
+
+  return (
+    <>
+      <div 
+        ref={ref}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`w-full h-full flex items-center justify-center shadow-[0_0_2px_black] cursor-help ${isTalent ? 'bg-[#11141a]' : ''}`}
+      >
+        <img src={iconUrl} className={`w-full h-full ${isTalent ? 'object-contain p-1 opacity-80' : 'object-cover'}`} alt={ability.dname} />
+      </div>
+
+      {isHovered && ability && createPortal(
+        <div 
+          className="fixed z-[9999] pointer-events-none p-2 bg-[#2d313b] border border-black shadow-2xl flex items-center gap-3 w-max rounded-sm"
+          style={{
+            left: `${coords.x}px`,
+            top: `${coords.y}px`,
+            transform: 'translate(-50%, -100%)',
+          }}
+        >
+          <div className="w-8 h-8 shrink-0 bg-[#11141a] border border-[#1e2329] flex items-center justify-center p-0.5">
+            <img src={iconUrl} className={`w-full h-full ${isTalent ? 'object-contain p-1 opacity-80' : 'object-cover'}`} alt="" />
+          </div>
+          <div className="font-bold text-[13px] uppercase tracking-wide text-white glow-text pr-2">
+            {ability.dname}
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+
 const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClick, onBack }) => {
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +106,8 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
   const [itemIdToKey, setItemIdToKey] = useState<Record<number, string>>({});
   const [itemDataMap, setItemDataMap] = useState<Record<number, any>>({});
   const [heroConstants, setHeroConstants] = useState<Record<string, any>>({});
+  const [abilityIdMap, setAbilityIdMap] = useState<Record<number, string>>({});
+  const [abilityDataMap, setAbilityDataMap] = useState<Record<string, any>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -60,8 +123,10 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
     // Parallel fetches for constants
     Promise.all([
         fetch('https://api.opendota.com/api/constants/items').then(res => res.json()),
-        fetch('https://api.opendota.com/api/constants/heroes').then(res => res.json())
-    ]).then(([itemsData, heroesData]) => {
+        fetch('https://api.opendota.com/api/constants/heroes').then(res => res.json()),
+        fetch('https://api.opendota.com/api/constants/ability_ids').then(res => res.json()),
+        fetch('https://api.opendota.com/api/constants/abilities').then(res => res.json())
+    ]).then(([itemsData, heroesData, abilityIdsData, abilitiesData]) => {
         if (!isMounted) return;
         
         // Process Items
@@ -81,6 +146,10 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
 
         // Process Heroes (Store fully for facets)
         setHeroConstants(heroesData);
+
+        // Process Abilities
+        setAbilityIdMap(abilityIdsData);
+        setAbilityDataMap(abilitiesData);
     }).catch(err => console.error("Failed to fetch constants", err));
 
     fetchData();
@@ -235,6 +304,112 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
       </div>
     );
   };
+
+  const renderAbilityIcon = (abilityId: number) => {
+      if (!abilityId) return null;
+      const abilityName = abilityIdMap[abilityId];
+      if (!abilityName) return null;
+      const ability = abilityDataMap[abilityName];
+      if (!ability) return null;
+
+      const isTalent = abilityName.includes('special_bonus');
+      const iconUrl = isTalent 
+          ? "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/talents.svg"
+          : `https://cdn.cloudflare.steamstatic.com${ability.img}`;
+
+      return (
+          <div className="w-full h-full relative">
+              <AbilityIconWithTooltip ability={ability} iconUrl={iconUrl} isTalent={isTalent} />
+          </div>
+      );
+  };
+
+  const LEVEL_MAPPING = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 25];
+
+  const renderAbilityBuild = (teamPlayers: ExtendedPlayer[], isRadiant: boolean) => (
+    <div className="terminal-box overflow-hidden mb-8">
+       {/* Header */}
+       <div className={`px-4 py-2 border-b border-theme-dim/50 flex items-center justify-between ${isRadiant ? 'bg-green-900/10' : 'bg-red-900/10'}`}>
+          <h3 className={`font-bold uppercase tracking-widest text-sm flex items-center gap-2 ${isRadiant ? 'text-green-400' : 'text-red-400'}`}>
+             <div className={`w-2 h-2 rounded-full ${isRadiant ? 'bg-green-400' : 'bg-red-400'}`} />
+             {isRadiant ? 'Radiant - Ability Build' : 'Dire - Ability Build'}
+          </h3>
+       </div>
+
+       {/* Table Header */}
+       <div className="overflow-x-auto custom-scrollbar">
+           <div className="min-w-[1050px]">
+               <div className="flex items-center text-[10px] uppercase text-theme-dim bg-black/40 border-b border-theme-dim/30 py-2 px-4 font-bold tracking-wider">
+                  <div className="w-48 shrink-0">Player</div>
+                  {[...Array(25)].map((_, i) => (
+                      <div key={i} className="flex-1 text-center font-mono font-bold text-white/80">{i + 1}</div>
+                  ))}
+               </div>
+
+               {/* Rows */}
+               <div className="divide-y divide-theme-dim/20">
+                  {teamPlayers.map((p) => {
+                      const upgrades = p.ability_upgrades_arr || [];
+                      const build = new Array(25).fill(null);
+                      
+                      upgrades.forEach((abilityId, index) => {
+                          const level = LEVEL_MAPPING[index];
+                          if (level && level <= 25) {
+                              build[level - 1] = abilityId;
+                          } else if (!level && index < 25) {
+                              // Fallback if array exceeds known mappings
+                              build[index] = abilityId;
+                          }
+                      });
+                      
+                      return (
+                          <div key={p.player_slot} className="flex items-center py-2 px-4 hover:bg-white/5 transition-colors group">
+                              {/* Player Identity */}
+                              <div className="w-48 shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => p.account_id && onPlayerClick(p.account_id)}>
+                                 {/* Hero Portrait Block */}
+                                 <div className="relative w-12 h-7 shrink-0 bg-black shadow-[0_0_4px_rgba(0,0,0,0.6)]">
+                                     <img 
+                                         src={getHeroImageUrl(p.hero_id)} 
+                                         alt="" 
+                                         className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" 
+                                     />
+                                 </div>
+                                 {/* Text Info */}
+                                 <div className="flex flex-col min-w-0 pr-2">
+                                     <div className={`text-[11px] font-bold truncate leading-none mb-1 ${p.account_id ? 'text-theme group-hover:underline' : 'text-theme-dim italic'}`}>
+                                         {p.personaname || 'Anonymous'}
+                                     </div>
+                                     <div className="flex items-center gap-1.5">
+                                         {p.rank_tier ? (
+                                             <span className="text-[9px] text-theme-dim font-mono leading-none flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-theme-dim/40"></span>
+                                                {getRankName(p.rank_tier)}
+                                             </span>
+                                         ) : (
+                                             <span className="text-[9px] text-theme-dim/50 font-mono leading-none">-</span>
+                                         )}
+                                     </div>
+                                 </div>
+                              </div>
+
+                              {/* 25 Levels */}
+                              {build.map((abilityId, i) => (
+                                  <div key={i} className="flex-1 flex justify-center items-center px-0.5">
+                                      {abilityId ? (
+                                          <div className="w-[30px] h-[30px] transition-transform hover:scale-110">
+                                              {renderAbilityIcon(abilityId)}
+                                          </div>
+                                      ) : null}
+                                  </div>
+                              ))}
+                          </div>
+                      );
+                  })}
+               </div>
+           </div>
+       </div>
+    </div>
+  );
 
   const renderTeamOverview = (teamPlayers: ExtendedPlayer[], isRadiant: boolean) => (
     <div className="terminal-box overflow-hidden mb-8">
@@ -553,24 +728,35 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
           <div className="text-[10px] text-theme-dim uppercase tracking-[0.2em] mb-2">Match ID: {match.match_id}</div>
           <div className="flex items-center gap-6 sm:gap-16">
               {/* Radiant Score */}
-              <div className={`text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter ${match.radiant_win ? 'text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]' : 'text-green-500/50'}`}>
-                  {match.radiant_score}
+              <div className="relative flex flex-col items-center">
+                  <div className={`text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-none ${match.radiant_win ? 'text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]' : 'text-green-500/50'}`}>
+                      {match.radiant_score}
+                  </div>
+                  {match.radiant_win && (
+                      <div className="absolute top-full mt-2 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-green-400 whitespace-nowrap drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
+                          Radiant Victory
+                      </div>
+                  )}
               </div>
 
               {/* Center Info */}
               <div className="flex flex-col items-center gap-2 z-10">
-                  <div className="px-3 sm:px-4 py-1 bg-black border border-theme-dim rounded-full text-[10px] sm:text-xs font-mono text-theme-dim uppercase tracking-widest whitespace-nowrap">
+                  <div className="px-4 sm:px-6 py-1.5 bg-black border border-theme-dim rounded-full text-sm sm:text-base font-mono text-theme-dim uppercase tracking-widest whitespace-nowrap">
                       {Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2,'0')}
                   </div>
                   <Swords className={`w-6 h-6 sm:w-8 sm:h-8 ${match.radiant_win ? 'text-green-400' : 'text-red-400'} opacity-80`} />
-                  <div className="text-[8px] sm:text-[10px] uppercase tracking-widest text-theme-dim whitespace-nowrap">
-                      {match.radiant_win ? 'Radiant Victory' : 'Dire Victory'}
-                  </div>
               </div>
 
               {/* Dire Score */}
-              <div className={`text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter ${!match.radiant_win ? 'text-red-400 drop-shadow-[0_0_15px_rgba(248,113,113,0.5)]' : 'text-red-500/50'}`}>
-                  {match.dire_score}
+              <div className="relative flex flex-col items-center">
+                  <div className={`text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-none ${!match.radiant_win ? 'text-red-400 drop-shadow-[0_0_15px_rgba(248,113,113,0.5)]' : 'text-red-500/50'}`}>
+                      {match.dire_score}
+                  </div>
+                  {!match.radiant_win && (
+                      <div className="absolute top-full mt-2 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-red-400 whitespace-nowrap drop-shadow-[0_0_5px_rgba(248,113,113,0.5)]">
+                          Dire Victory
+                      </div>
+                  )}
               </div>
           </div>
        </div>
@@ -625,6 +811,12 @@ const MatchDetailView: React.FC<MatchDetailViewProps> = ({ matchId, onPlayerClic
        <div className="space-y-6">
           {renderTeamOverview(radiantPlayers, true)}
           {renderTeamOverview(direPlayers, false)}
+       </div>
+
+       {/* Ability Build Section */}
+       <div className="space-y-6 mt-12">
+          {renderAbilityBuild(radiantPlayers, true)}
+          {renderAbilityBuild(direPlayers, false)}
        </div>
     </div>
   );

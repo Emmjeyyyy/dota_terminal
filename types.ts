@@ -57,6 +57,7 @@ export interface MatchPlayerDetail {
   neutral_item: number;
   party_id?: number;
   party_size?: number;
+  ability_upgrades_arr?: number[];
 }
 
 export interface MatchDetail {
@@ -200,4 +201,10 @@ export interface WordCloud {
 export interface WardMap {
   obs: Record<string, Record<string, number>>;
   sen: Record<string, Record<string, number>>;
+}
+
+export interface PlayerTotal {
+  field: string;
+  n: number;
+  sum: number;
 }

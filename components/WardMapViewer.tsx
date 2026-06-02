@@ -46,7 +46,7 @@ const WardMapViewer: React.FC<WardMapViewerProps> = ({ wardMap }) => {
 
     const renderMap = (points: { x: number, y: number, count: number }[], maxCount: number, type: 'obs' | 'sen') => {
         return (
-            <div className="relative aspect-square w-full max-w-md mx-auto bg-black/80 border border-theme-dim/30 overflow-hidden">
+            <div className="relative aspect-square w-full max-w-md mx-auto bg-black/80 border border-white/10 overflow-hidden">
                 <img
                     src={dotaMap}
                     alt="Dota 2 Map"

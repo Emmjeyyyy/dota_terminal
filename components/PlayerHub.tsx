@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlayerProfile, WinLoss, MatchSummary, Peer, PlayerHeroStats, PlayerCounts, CountMetric, WordCloud, WardMap } from '../types';
-import { getPlayerProfile, getPlayerWL, getRecentMatches, getPlayerPeers, getPlayerHeroes, getPlayerCounts, getPlayerWordCloud, getPlayerWardmap } from '../services/api';
+import { PlayerProfile, WinLoss, MatchSummary, Peer, PlayerHeroStats, PlayerCounts, CountMetric, WordCloud, WardMap, PlayerTotal } from '../types';
+import { getPlayerProfile, getPlayerWL, getRecentMatches, getPlayerPeers, getPlayerHeroes, getPlayerCounts, getPlayerWordCloud, getPlayerWardmap, getPlayerTotals } from '../services/api';
 import { Loader2, Users, History, LayoutGrid, AlertCircle, HardDrive, BarChart3, MessageSquare, MapPin } from 'lucide-react';
 import MatchList from './MatchList';
 import { getHeroImageUrl, getHeroName } from '../services/heroService';
@@ -13,7 +13,7 @@ interface PlayerHubProps {
     onPeerClick: (id: number) => void;
 }
 
-type Tab = 'overview' | 'heroes' | 'peers' | 'wordcloud' | 'wardmap';
+type Tab = 'overview' | 'heroes' | 'peers' | 'wordcloud' | 'wardmap' | 'totals';
 
 const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerClick }) => {
     const navigate = useNavigate();
@@ -28,6 +28,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
 
     const [peers, setPeers] = useState<Peer[]>([]);
     const [heroes, setHeroes] = useState<PlayerHeroStats[]>([]);
+    const [totals, setTotals] = useState<PlayerTotal[]>([]);
     const [loadingTab, setLoadingTab] = useState(false);
 
     // Reset ALL state when switching to a different player
@@ -41,6 +42,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
         setWardMap(null);
         setPeers([]);
         setHeroes([]);
+        setTotals([]);
         setActiveTab('overview');
     }, [accountId]);
 
@@ -89,6 +91,11 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                 setLoadingTab(true);
                 const data = await getPlayerWardmap(accountId);
                 setWardMap(data);
+                setLoadingTab(false);
+            } else if (activeTab === 'totals' && totals.length === 0) {
+                setLoadingTab(true);
+                const data = await getPlayerTotals(accountId);
+                setTotals(data);
                 setLoadingTab(false);
             }
         };
@@ -139,7 +146,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
         const intensity = wrNum >= 55 ? 'text-theme' : wrNum >= 45 ? 'text-theme opacity-80' : 'text-theme-dim';
 
         return (
-            <div className="flex items-center justify-between py-1.5 border-b border-theme-dim/30 last:border-0 text-xs">
+            <div className="flex items-center justify-between py-1.5 border-b border-theme last:border-0 text-xs">
                 <span className="text-theme-dim uppercase tracking-wider">{label}</span>
                 <div className="flex items-center gap-4">
                     <span className="font-mono text-theme-dim">{games}</span>
@@ -180,7 +187,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
         const maxSize = 3;
 
         return (
-            <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center items-center p-6 bg-black/40 border border-theme-dim/30">
+            <div className="flex flex-wrap gap-x-4 gap-y-2 justify-center items-center p-6 bg-black/40 border border-white/10">
                 {words.map(({ word, count }) => {
                     // Use square root scaling to dampen outliers slightly
                     const numerator = Math.sqrt(count) - Math.sqrt(minCount);
@@ -207,6 +214,84 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                         </span>
                     );
                 })}
+            </div>
+        );
+    };
+
+    const renderTotals = () => {
+        if (totals.length === 0) {
+            return (
+                <div className="text-center py-8 text-theme-dim border border-dashed border-theme-dim/30 uppercase text-xs">
+                    No totals data available.
+                </div>
+            );
+        }
+
+        const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
+        
+        const getFieldSum = (field: string) => {
+            const t = totals.find(t => t.field === field);
+            return t ? formatNumber(t.sum) : '0';
+        };
+
+        const getDuration = (field: string) => {
+            const t = totals.find(t => t.field === field);
+            if (!t) return '0s';
+            const seconds = t.sum;
+            const d = Math.floor(seconds / (3600*24));
+            const h = Math.floor(seconds % (3600*24) / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return `${d}d ${h}h ${m}m ${s}s`;
+        };
+
+        const allMatchesFields = [
+            { label: 'Kills', value: getFieldSum('kills') },
+            { label: 'Deaths', value: getFieldSum('deaths') },
+            { label: 'Assists', value: getFieldSum('assists') },
+            { label: 'Last Hits', value: getFieldSum('last_hits') },
+            { label: 'Denies', value: getFieldSum('denies') },
+            { label: 'Duration', value: getDuration('duration') },
+            { label: 'Level', value: getFieldSum('level') },
+            { label: 'Hero Damage', value: getFieldSum('hero_damage') },
+            { label: 'Tower Damage', value: getFieldSum('tower_damage') },
+            { label: 'Hero Healing', value: getFieldSum('hero_healing') },
+        ];
+
+        const parsedMatchesFields = [
+            { label: 'Stuns', value: getFieldSum('stuns') },
+            { label: 'Tower Kills', value: getFieldSum('tower_kills') },
+            { label: 'Neutral Kills', value: getFieldSum('neutral_kills') },
+            { label: 'Courier Kills', value: getFieldSum('courier_kills') },
+            { label: 'Tps Purchased', value: getFieldSum('purchase_tpscroll') },
+            { label: 'Observers Purchased', value: getFieldSum('purchase_ward_observer') },
+            { label: 'Sentries Purchased', value: getFieldSum('purchase_ward_sentry') },
+            { label: 'Gems Purchased', value: getFieldSum('purchase_gem') },
+            { label: 'Rapiers Purchased', value: getFieldSum('purchase_rapier') },
+            { label: 'Map Pings', value: getFieldSum('pings') },
+        ];
+
+        const renderGrid = (fields: {label: string, value: string}[]) => (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4 mb-6">
+                {fields.map(f => (
+                    <div key={f.label} className="bg-black/40 border border-theme-dim p-4 flex flex-col items-center justify-center">
+                        <div className="text-[10px] text-theme-dim uppercase tracking-wider mb-2 font-bold text-center h-6">{f.label}</div>
+                        <div className="text-sm font-mono text-theme glow-text text-center">{f.value}</div>
+                    </div>
+                ))}
+            </div>
+        );
+
+        return (
+            <div className="animate-fade-in space-y-8">
+                <div>
+                    <h3 className="text-sm font-bold text-theme uppercase border-b border-theme pb-2 pl-2">In All Matches</h3>
+                    {renderGrid(allMatchesFields)}
+                </div>
+                <div>
+                    <h3 className="text-sm font-bold text-theme uppercase border-b border-theme pb-2 pl-2">In Parsed Matches</h3>
+                    {renderGrid(parsedMatchesFields)}
+                </div>
             </div>
         );
     };
@@ -303,6 +388,12 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                 >
                     <MapPin className="w-4 h-4" /> [WARD MAP]
                 </button>
+                <button
+                    onClick={() => setActiveTab('totals')}
+                    className={`px-4 md:px-6 py-3 text-xs font-bold uppercase flex items-center gap-2 border-r border-theme-dim transition-all whitespace-nowrap shrink-0 ${activeTab === 'totals' ? 'bg-theme text-black' : 'text-theme-dim hover:text-theme hover:bg-theme-dim'}`}
+                >
+                    <BarChart3 className="w-4 h-4" /> [TOTALS]
+                </button>
             </div>
 
             {/* Content */}
@@ -320,7 +411,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
 
                                     {/* Lifetime Overview */}
                                     <div className="mb-6">
-                                        <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lifetime Overview</h4>
+                                        <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme pb-1">Lifetime Overview</h4>
                                         <div className="flex justify-between items-end mb-1">
                                             <span className="uppercase text-theme-dim">Total Matches</span>
                                             <span className="text-theme font-bold text-lg">{(wl?.win || 0) + (wl?.lose || 0)}</span>
@@ -328,9 +419,6 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                         <div className="flex justify-between items-center">
                                             <span className="uppercase text-theme-dim">Overall Win Rate</span>
                                             <span className={`font-bold ${parseFloat(winRate) >= 50 ? 'text-theme' : 'text-theme opacity-80'}`}>{winRate}%</span>
-                                        </div>
-                                        <div className="text-[10px] uppercase text-theme-dim mt-2 opacity-60 text-right">
-                                            {(wl?.win || 0) + (wl?.lose || 0) > 0 ? ">> STATS_RECORDED" : ">> NO_STATS_RECORDED"}
                                         </div>
                                     </div>
 
@@ -363,7 +451,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                             <div className="space-y-6">
                                                 {/* Lobby Breakdown */}
                                                 <div>
-                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Lobby Breakdown</h4>
+                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme pb-1">Lobby Breakdown</h4>
                                                     <div className="flex justify-between text-[9px] uppercase text-theme-dim mb-1 px-1">
                                                         <span>Type</span>
                                                         <div className="flex gap-4"><span>Games</span><span>Win%</span></div>
@@ -374,14 +462,14 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
 
                                                 {/* Mode Breakdown */}
                                                 <div>
-                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Game Modes</h4>
+                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme pb-1">Game Modes</h4>
                                                     {renderStatRow("All Pick", allPick.win, allPick.games)}
                                                     {renderStatRow("Other", other.win, other.games)}
                                                 </div>
 
                                                 {/* Faction Breakdown */}
                                                 <div>
-                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme-dim/50 pb-1">Faction</h4>
+                                                    <h4 className="text-[10px] text-theme-dim uppercase tracking-widest mb-2 border-b border-theme pb-1">Faction</h4>
                                                     {renderStatRow("Radiant", radiant.win, radiant.games)}
                                                     {renderStatRow("Dire", dire.win, dire.games)}
                                                 </div>
@@ -405,7 +493,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                         {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
                             <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left text-xs min-w-[450px]">
-                                    <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
+                                    <thead className="bg-black/40 text-theme-dim border-b border-theme font-bold uppercase text-[10px]">
                                         <tr>
                                             <th className="p-3">Hero</th>
                                             <th className="p-3 text-center">Matches</th>
@@ -413,7 +501,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                             <th className="p-3 text-center">Last Played</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-theme-dim">
+                                    <tbody className="divide-y divide-[#4ade80]">
                                         {heroes.slice(0, 20).map(h => {
                                             const wr = (h.win / h.games) * 100;
                                             return (
@@ -449,7 +537,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                         {loadingTab ? <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" /> : (
                             <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left text-xs min-w-[450px]">
-                                    <thead className="bg-black/40 text-theme-dim border-b border-theme-dim font-bold uppercase text-[10px]">
+                                    <thead className="bg-black/40 text-theme-dim border-b border-theme font-bold uppercase text-[10px]">
                                         <tr>
                                             <th className="p-3">Player</th>
                                             <th className="p-3 text-center">Games</th>
@@ -457,7 +545,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                                             <th className="p-3 text-center">Last Played</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-theme-dim">
+                                    <tbody className="divide-y divide-[#4ade80]">
                                         {peers.slice(0, 25).map(p => {
                                             const wr = (p.with_win / p.with_games) * 100;
                                             return (
@@ -504,6 +592,19 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                             <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" />
                         ) : (
                             <WardMapViewer wardMap={wardMap} />
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'totals' && (
+                    <div>
+                        <h3 className="text-xs font-bold text-theme uppercase mb-4 flex items-center gap-2">
+                            <BarChart3 className="w-4 h-4" /> Statistical_Analysis // Totals
+                        </h3>
+                        {loadingTab ? (
+                            <Loader2 className="w-8 h-8 animate-spin mx-auto text-theme" />
+                        ) : (
+                            renderTotals()
                         )}
                     </div>
                 )}
