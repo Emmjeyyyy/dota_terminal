@@ -91,57 +91,67 @@ const HeroesView: React.FC = () => {
                      />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                     <span className="text-[10px] uppercase text-theme-dim tracking-wider mr-1 hidden sm:flex items-center gap-1">
-                        <Filter className="w-3 h-3" /> ATTRIBUTE:
-                     </span>
-                     {ATTR_FILTERS.map((attr) => {
-                        const isSelected = selectedAttrs.includes(attr.id);
-                        let selectedClasses = '';
-                        if (isSelected) {
-                            if (attr.id === 'str') selectedClasses = 'opacity-100 scale-110 border-red-500 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
-                            else if (attr.id === 'agi') selectedClasses = 'opacity-100 scale-110 border-green-500 bg-green-500/10 shadow-[0_0_10px_rgba(34,197,94,0.5)]';
-                            else if (attr.id === 'int') selectedClasses = 'opacity-100 scale-110 border-[#00a4db] bg-[#00a4db]/10 shadow-[0_0_10px_rgba(0,164,219,0.5)]';
-                            else if (attr.id === 'all') selectedClasses = 'opacity-100 scale-110 border-transparent shadow-[0_0_10px_rgba(255,255,255,0.3)]';
-                        } else {
-                            selectedClasses = 'opacity-40 border-transparent sm:hover:opacity-100 sm:hover:scale-105 grayscale sm:hover:grayscale-0';
-                        }
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-2">
+                     {/* Attribute Filter */}
+                     <div className="flex flex-col sm:flex-row gap-1 sm:items-center">
+                        <span className="text-[10px] uppercase text-theme-dim tracking-wider flex items-center gap-1 mb-1 sm:mb-0 mr-0 sm:mr-1">
+                           <Filter className="w-3 h-3" /> ATTRIBUTE:
+                        </span>
+                        <div className="flex flex-wrap items-center gap-2">
+                           {ATTR_FILTERS.map((attr) => {
+                              const isSelected = selectedAttrs.includes(attr.id);
+                              let selectedClasses = '';
+                              if (isSelected) {
+                                  if (attr.id === 'str') selectedClasses = 'opacity-100 scale-110 border-red-500 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
+                                  else if (attr.id === 'agi') selectedClasses = 'opacity-100 scale-110 border-green-500 bg-green-500/10 shadow-[0_0_10px_rgba(34,197,94,0.5)]';
+                                  else if (attr.id === 'int') selectedClasses = 'opacity-100 scale-110 border-[#00a4db] bg-[#00a4db]/10 shadow-[0_0_10px_rgba(0,164,219,0.5)]';
+                                  else if (attr.id === 'all') selectedClasses = 'opacity-100 scale-110 border-transparent shadow-[0_0_10px_rgba(255,255,255,0.3)]';
+                              } else {
+                                  selectedClasses = 'opacity-40 border-transparent sm:hover:opacity-100 sm:hover:scale-105 grayscale sm:hover:grayscale-0';
+                              }
 
-                        return (
-                           <button
-                              key={attr.id}
-                              onClick={() => toggleAttr(attr.id)}
-                              className={`w-8 h-8 rounded-full border transition-all duration-300 relative group overflow-hidden flex items-center justify-center ${selectedClasses}`}
-                              title={attr.label}
-                           >
-                              {isSelected && attr.id === 'all' && (
-                                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-red-500 via-green-500 to-[#00a4db] p-[1px] -z-10">
-                                    <div className="w-full h-full bg-black rounded-full" />
-                                 </div>
-                              )}
-                              <img src={attr.icon} alt={attr.label} className="w-full h-full object-contain relative z-10" />
-                           </button>
-                        );
-                     })}
+                              return (
+                                 <button
+                                    key={attr.id}
+                                    onClick={() => toggleAttr(attr.id)}
+                                    className={`w-8 h-8 rounded-full border transition-all duration-300 relative group overflow-hidden flex items-center justify-center ${selectedClasses}`}
+                                    title={attr.label}
+                                 >
+                                    {isSelected && attr.id === 'all' && (
+                                       <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-red-500 via-green-500 to-[#00a4db] p-[1px] -z-10">
+                                          <div className="w-full h-full bg-black rounded-full" />
+                                       </div>
+                                    )}
+                                    <img src={attr.icon} alt={attr.label} className="w-full h-full object-contain relative z-10" />
+                                 </button>
+                              );
+                           })}
+                        </div>
+                     </div>
                      
                      <div className="w-[1px] h-6 bg-theme-dim/50 mx-1 hidden sm:block"></div>
                      
-                     <span className="text-[10px] uppercase text-theme-dim tracking-wider mr-1 hidden sm:flex items-center gap-1">
-                        COMPLEXITY:
-                     </span>
-                     {[1, 2, 3].map((comp) => {
-                        const isActive = selectedComplexity !== null && comp <= selectedComplexity;
-                        return (
-                           <button
-                              key={comp}
-                              onClick={() => toggleComplexity(comp)}
-                              className={`h-8 w-8 flex items-center justify-center rounded-sm transition-all duration-300 font-bold text-lg ${isActive ? 'opacity-100 scale-110 text-theme drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'opacity-40 text-theme-dim sm:hover:opacity-100'}`}
-                              title={`Complexity ${comp}`}
-                           >
-                              {isActive ? '◆' : '◇'}
-                           </button>
-                        );
-                     })}
+                     {/* Complexity Filter */}
+                     <div className="flex flex-col sm:flex-row gap-1 sm:items-center">
+                        <span className="text-[10px] uppercase text-theme-dim tracking-wider flex items-center gap-1 mb-1 sm:mb-0 mr-0 sm:mr-1">
+                           COMPLEXITY:
+                        </span>
+                        <div className="flex items-center gap-2">
+                           {[1, 2, 3].map((comp) => {
+                              const isActive = selectedComplexity !== null && comp <= selectedComplexity;
+                              return (
+                                 <button
+                                    key={comp}
+                                    onClick={() => toggleComplexity(comp)}
+                                    className={`h-8 w-8 flex items-center justify-center rounded-sm transition-all duration-300 font-bold text-lg ${isActive ? 'opacity-100 scale-110 text-theme drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'opacity-40 text-theme-dim sm:hover:opacity-100'}`}
+                                    title={`Complexity ${comp}`}
+                                 >
+                                    {isActive ? '◆' : '◇'}
+                                 </button>
+                              );
+                           })}
+                        </div>
+                     </div>
                   </div>
                </div>
 
