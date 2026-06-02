@@ -21,6 +21,7 @@ const HeroesView: React.FC = () => {
    
    const [searchQuery, setSearchQuery] = useState('');
    const [selectedAttrs, setSelectedAttrs] = useState<string[]>([]);
+   const [selectedComplexity, setSelectedComplexity] = useState<number | null>(null);
    const [selectedHero, setSelectedHero] = useState<GlobalHero | null>(null);
 
    const heroes = useMemo(() => {
@@ -36,11 +37,19 @@ const HeroesView: React.FC = () => {
       );
    };
 
+   const toggleComplexity = (comp: number) => {
+      setSelectedComplexity(prev => prev === comp ? null : comp);
+   };
+
    const filteredHeroes = useMemo(() => {
       let result = heroes;
 
       if (selectedAttrs.length > 0) {
          result = result.filter(h => selectedAttrs.includes(h.primary_attr));
+      }
+
+      if (selectedComplexity !== null) {
+         result = result.filter(h => h.complexity === selectedComplexity);
       }
 
       if (searchQuery) {
@@ -53,7 +62,7 @@ const HeroesView: React.FC = () => {
       }
 
       return result;
-   }, [heroes, searchQuery, selectedAttrs]);
+   }, [heroes, searchQuery, selectedAttrs, selectedComplexity]);
 
    return (
       <div className="animate-fade-in w-full">
@@ -84,7 +93,7 @@ const HeroesView: React.FC = () => {
 
                   <div className="flex flex-wrap items-center gap-2">
                      <span className="text-[10px] uppercase text-theme-dim tracking-wider mr-1 hidden sm:flex items-center gap-1">
-                        <Filter className="w-3 h-3" /> Attr:
+                        <Filter className="w-3 h-3" /> ATTRIBUTE:
                      </span>
                      {ATTR_FILTERS.map((attr) => {
                         const isSelected = selectedAttrs.includes(attr.id);
@@ -111,6 +120,25 @@ const HeroesView: React.FC = () => {
                                  </div>
                               )}
                               <img src={attr.icon} alt={attr.label} className="w-full h-full object-contain relative z-10" />
+                           </button>
+                        );
+                     })}
+                     
+                     <div className="w-[1px] h-6 bg-theme-dim/50 mx-1 hidden sm:block"></div>
+                     
+                     <span className="text-[10px] uppercase text-theme-dim tracking-wider mr-1 hidden sm:flex items-center gap-1">
+                        COMPLEXITY:
+                     </span>
+                     {[1, 2, 3].map((comp) => {
+                        const isActive = selectedComplexity !== null && comp <= selectedComplexity;
+                        return (
+                           <button
+                              key={comp}
+                              onClick={() => toggleComplexity(comp)}
+                              className={`h-8 w-8 flex items-center justify-center rounded-sm transition-all duration-300 font-bold text-lg ${isActive ? 'opacity-100 scale-110 text-theme drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'opacity-40 text-theme-dim hover:opacity-100'}`}
+                              title={`Complexity ${comp}`}
+                           >
+                              {isActive ? '◆' : '◇'}
                            </button>
                         );
                      })}
@@ -141,9 +169,9 @@ const HeroesView: React.FC = () => {
                   {filteredHeroes.length === 0 && (
                      <div className="col-span-full py-20 text-center text-theme-dim border border-dashed border-theme-dim flex flex-col items-center justify-center gap-4">
                         <span className="text-xs uppercase">No_Operatives_Found</span>
-                        {(selectedAttrs.length > 0 || searchQuery) && (
+                        {(selectedAttrs.length > 0 || selectedComplexity !== null || searchQuery) && (
                            <button
-                              onClick={() => { setSelectedAttrs([]); setSearchQuery(''); }}
+                              onClick={() => { setSelectedAttrs([]); setSelectedComplexity(null); setSearchQuery(''); }}
                               className="text-xs uppercase text-theme hover:underline flex items-center gap-2"
                            >
                               <X className="w-3 h-3" /> Reset_All_Filters

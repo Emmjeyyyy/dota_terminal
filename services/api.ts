@@ -12,6 +12,7 @@ import {
   WordCloud,
   PlayerTotal
 } from '../types';
+import { HERO_COMPLEXITY } from '../utils/heroComplexity';
 
 // Queue-based rate limiter to ensure sequential requests
 let lastRequestTime = 0;
@@ -133,7 +134,11 @@ export const getGlobalHeroes = async (): Promise<GlobalHero[]> => {
   try {
     const res = await rateLimitedFetch(`${API_BASE_URL}/heroStats`);
     if (!res.ok) return [];
-    return await res.json();
+    const data: GlobalHero[] = await res.json();
+    return data.map(h => ({
+      ...h,
+      complexity: HERO_COMPLEXITY[h.id] || 1
+    }));
   } catch (e) {
     console.error("Error fetching global heroes:", e);
     return [];

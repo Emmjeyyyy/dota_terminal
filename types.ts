@@ -112,6 +112,7 @@ export interface GlobalHero {
   roles: string[];
   img: string;
   icon: string;
+  complexity?: number;
   base_health?: number;
   base_mana?: number;
   base_armor?: number;
