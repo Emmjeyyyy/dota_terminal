@@ -90,7 +90,7 @@ const MatchList: React.FC<MatchListProps> = ({ matches, onMatchClick }) => {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-theme-dim pt-4 mt-2">
+        <div className="flex items-center justify-center gap-4 border-t border-theme-dim pt-4 mt-2">
           <button 
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}

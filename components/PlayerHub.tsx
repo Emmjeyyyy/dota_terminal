@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PlayerProfile, WinLoss, MatchSummary, Peer, PlayerHeroStats, PlayerCounts, CountMetric, WordCloud, WardMap } from '../types';
 import { getPlayerProfile, getPlayerWL, getRecentMatches, getPlayerPeers, getPlayerHeroes, getPlayerCounts, getPlayerWordCloud, getPlayerWardmap } from '../services/api';
 import { Loader2, Users, History, LayoutGrid, AlertCircle, HardDrive, BarChart3, MessageSquare, MapPin } from 'lucide-react';
@@ -15,6 +16,7 @@ interface PlayerHubProps {
 type Tab = 'overview' | 'heroes' | 'peers' | 'wordcloud' | 'wardmap';
 
 const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerClick }) => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState<PlayerProfile | null>(null);
     const [wl, setWl] = useState<WinLoss | null>(null);
@@ -97,17 +99,23 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
         return (
             <div className="flex flex-col items-center justify-center h-[70vh] text-theme">
                 <Loader2 className="w-10 h-10 animate-spin mb-4" />
-                <div className="uppercase tracking-widest text-xs animate-pulse">Retrieving_Subject_Data...</div>
+                <div className="uppercase tracking-widest text-xs animate-pulse">Retrieving_Player_Data...</div>
             </div>
         );
     }
 
     if (!profile || !profile.profile) {
         return (
-            <div className="text-center py-20 border border-dashed border-theme-dim m-4">
-                <AlertCircle className="w-12 h-12 text-theme opacity-50 mx-auto mb-4" />
-                <h2 className="text-xl font-bold uppercase text-theme">Subject_Not_Found</h2>
-                <p className="text-theme-dim text-xs mt-2">Check ID Input Coordinates.</p>
+            <div className="flex flex-col items-center justify-center min-h-[70vh] border border-dashed border-theme-dim m-4 text-center">
+                <AlertCircle className="w-12 h-12 text-theme opacity-50 mb-4" />
+                <h2 className="text-xl font-bold uppercase text-theme">Player Not Found</h2>
+                <p className="text-theme-dim text-xs mt-2 mb-6">Please check the account ID and try again.</p>
+                <button
+                    onClick={() => navigate('/')}
+                    className="border border-theme text-theme px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-theme hover:text-black transition-colors inline-flex items-center justify-center"
+                >
+                    Go Back
+                </button>
             </div>
         );
     }
@@ -151,7 +159,7 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
         }
 
         const words = Object.entries(wordCloud.my_word_counts)
-            .map(([word, count]) => ({ word, count }))
+            .map(([word, count]) => ({ word, count: Number(count) }))
             .filter(w => w.word.trim().length > 0)
             .sort((a, b) => b.count - a.count)
             .slice(0, 50);
@@ -220,13 +228,13 @@ const PlayerHub: React.FC<PlayerHubProps> = ({ accountId, onMatchClick, onPeerCl
                         </h1>
                         {profile.rank_tier && (
                             <div className="relative w-14 h-14 shrink-0 drop-shadow-[0_0_8px_rgba(74,222,128,0.3)]">
-                                <img 
+                                <img
                                     src={`https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${Math.floor(profile.rank_tier / 10)}.png`}
                                     className="absolute inset-0 w-full h-full object-contain"
                                     alt="Rank Medal"
                                 />
                                 {(profile.rank_tier % 10) > 0 && Math.floor(profile.rank_tier / 10) < 8 && (
-                                    <img 
+                                    <img
                                         src={`https://www.opendota.com/assets/images/dota2/rank_icons/rank_star_${profile.rank_tier % 10}.png`}
                                         className="absolute inset-0 w-full h-full object-contain"
                                         alt="Rank Stars"

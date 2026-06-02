@@ -29,7 +29,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onSubmit, isLoading }) => {
     <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto mb-8 relative group">
       <div className="relative flex items-center">
         <div className="absolute left-4 text-theme animate-pulse">
-           <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5" />
         </div>
         <input
           type="text"
@@ -52,7 +52,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onSubmit, isLoading }) => {
         </button>
       </div>
       <p className="text-[10px] text-theme-dim mt-2 text-center uppercase tracking-widest opacity-80">
-        EXAMPLE_TARGET: 111620041
+        EXAMPLE_TARGET: 94054712
       </p>
     </form>
   );
