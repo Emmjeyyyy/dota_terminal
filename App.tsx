@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import BootSequence from './components/BootSequence';
 import PlayerForm from './components/PlayerForm';
 import PlayerHub from './components/PlayerHub';
 import MatchDetailView from './components/MatchDetailView';
@@ -54,8 +55,13 @@ const App: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [themeColor, setThemeColor] = useState(localStorage.getItem('crt-theme') || '#4ade80');
   const [currentPatch, setCurrentPatch] = useState<string>('...');
+  const [bootComplete, setBootComplete] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleBootComplete = () => {
+    setBootComplete(true);
+  };
 
   useEffect(() => {
     ensureHeroData().then(() => setAppReady(true));
@@ -67,12 +73,21 @@ const App: React.FC = () => {
     localStorage.setItem('crt-theme', themeColor);
   }, [themeColor]);
 
-  if (!appReady) {
+  // Display BootSequence until both aesthetic boot and data fetching are complete
+  if (!appReady || !bootComplete) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-theme">
-        <Loader2 className="w-10 h-10 animate-spin mb-4" />
-        <p className="font-mono animate-pulse">BOOT SEQUENCE INITIATED...</p>
-      </div>
+       <>
+         {!bootComplete && <BootSequence onComplete={handleBootComplete} />}
+         
+         {/* If boot aesthetic is complete but API data is still loading, show a minimal loading state. 
+             (This usually won't happen since data fetches faster than the 3s animation) */}
+         {bootComplete && !appReady && (
+           <div className="min-h-screen bg-black flex flex-col items-center justify-center text-theme">
+             <Loader2 className="w-10 h-10 animate-spin mb-4" />
+             <p className="font-mono animate-pulse">FETCHING LATEST SYSTEM DATA...</p>
+           </div>
+         )}
+       </>
     );
   }
 
