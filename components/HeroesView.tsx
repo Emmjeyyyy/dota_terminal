@@ -104,7 +104,7 @@ const HeroesView: React.FC = () => {
                             else if (attr.id === 'int') selectedClasses = 'opacity-100 scale-110 border-[#00a4db] bg-[#00a4db]/10 shadow-[0_0_10px_rgba(0,164,219,0.5)]';
                             else if (attr.id === 'all') selectedClasses = 'opacity-100 scale-110 border-transparent shadow-[0_0_10px_rgba(255,255,255,0.3)]';
                         } else {
-                            selectedClasses = 'opacity-40 border-transparent hover:opacity-100 hover:scale-105 grayscale hover:grayscale-0';
+                            selectedClasses = 'opacity-40 border-transparent sm:hover:opacity-100 sm:hover:scale-105 grayscale sm:hover:grayscale-0';
                         }
 
                         return (
@@ -135,7 +135,7 @@ const HeroesView: React.FC = () => {
                            <button
                               key={comp}
                               onClick={() => toggleComplexity(comp)}
-                              className={`h-8 w-8 flex items-center justify-center rounded-sm transition-all duration-300 font-bold text-lg ${isActive ? 'opacity-100 scale-110 text-theme drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'opacity-40 text-theme-dim hover:opacity-100'}`}
+                              className={`h-8 w-8 flex items-center justify-center rounded-sm transition-all duration-300 font-bold text-lg ${isActive ? 'opacity-100 scale-110 text-theme drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'opacity-40 text-theme-dim sm:hover:opacity-100'}`}
                               title={`Complexity ${comp}`}
                            >
                               {isActive ? '◆' : '◇'}
