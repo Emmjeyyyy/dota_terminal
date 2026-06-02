@@ -169,9 +169,11 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={
             <div className="flex flex-col items-center justify-center py-12 md:py-20 animate-fade-in w-full">
-               <pre className="font-mono text-[5px] sm:text-[8px] md:text-[10px] leading-[1.1] text-theme glow-text mb-8 whitespace-pre select-none p-4 border-0 border-b border-current">
-                 {ASCII_ART}
-               </pre>
+               <div className="w-full max-w-full overflow-x-auto flex justify-center mb-8 border-0 border-b border-current p-4 scrollbar-hide md:overflow-visible">
+                 <pre className="font-mono text-[3.5px] min-[375px]:text-[4.5px] sm:text-[7px] md:text-[10px] leading-[1.1] text-theme glow-text whitespace-pre select-none">
+                   {ASCII_ART}
+                 </pre>
+               </div>
                <p className="text-theme-dim text-center max-w-lg mb-10 text-base md:text-lg font-light px-4">
                  ACCESSING DOTA DATABASE...<br/>
                  ENTER ACCOUNT ID BELOW.
