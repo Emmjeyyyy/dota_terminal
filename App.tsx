@@ -73,29 +73,26 @@ const App: React.FC = () => {
     localStorage.setItem('crt-theme', themeColor);
   }, [themeColor]);
 
-  // Display BootSequence until both aesthetic boot and data fetching are complete
-  if (!appReady || !bootComplete) {
-    return (
-       <>
-         {!bootComplete && <BootSequence onComplete={handleBootComplete} />}
-         
-         {/* If boot aesthetic is complete but API data is still loading, show a minimal loading state. 
-             (This usually won't happen since data fetches faster than the 3s animation) */}
-         {bootComplete && !appReady && (
-           <div className="min-h-screen bg-black flex flex-col items-center justify-center text-theme">
-             <Loader2 className="w-10 h-10 animate-spin mb-4" />
-             <p className="font-mono animate-pulse">FETCHING LATEST SYSTEM DATA...</p>
-           </div>
-         )}
-       </>
-    );
-  }
-
   const getNavButtonClass = (isActive: boolean) => 
     `flex items-center gap-2 transition-all uppercase text-xs tracking-wider font-bold ${isActive ? 'text-theme drop-shadow-[0_0_8px_color-mix(in_srgb,var(--theme-color),transparent_40%)]' : 'text-theme opacity-80 hover:opacity-100 hover:drop-shadow-[0_0_5px_color-mix(in_srgb,var(--theme-color),transparent_60%)]'}`;
 
   return (
     <QueryClientProvider client={queryClient}>
+    {/* Display BootSequence as an overlay until both aesthetic boot and data fetching are complete */}
+    {(!appReady || !bootComplete) && (
+       <div className="fixed inset-0 z-[2000] bg-black">
+         {!bootComplete && <BootSequence onComplete={handleBootComplete} />}
+         
+         {/* If boot aesthetic is complete but API data is still loading... */}
+         {bootComplete && !appReady && (
+           <div className="h-full w-full flex flex-col items-center justify-center text-theme">
+             <Loader2 className="w-10 h-10 animate-spin mb-4" />
+             <p className="font-mono animate-pulse">FETCHING LATEST SYSTEM DATA...</p>
+           </div>
+         )}
+       </div>
+    )}
+
     <div className="min-h-screen relative font-mono text-sm flex flex-col">
       {/* CRT Overlays */}
       <div className="scanlines pointer-events-none" />

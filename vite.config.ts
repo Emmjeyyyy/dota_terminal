@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/hero-icons': {
+            target: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/hero-icons/, '')
+          }
+        }
       },
       plugins: [react()],
       define: {

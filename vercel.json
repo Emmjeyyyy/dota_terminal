@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/hero-icons/:path*",
+      "destination": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/icons/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

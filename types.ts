@@ -58,6 +58,9 @@ export interface MatchPlayerDetail {
   party_id?: number;
   party_size?: number;
   ability_upgrades_arr?: number[];
+  lane?: number;
+  lane_role?: number;
+  is_roaming?: boolean;
 }
 
 export interface MatchDetail {
@@ -68,6 +71,12 @@ export interface MatchDetail {
   radiant_score: number;
   dire_score: number;
   players: MatchPlayerDetail[];
+  tower_status_radiant?: number;
+  tower_status_dire?: number;
+  barracks_status_radiant?: number;
+  barracks_status_dire?: number;
+  radiant_gold_adv?: number[];
+  radiant_xp_adv?: number[];
 }
 
 export interface Peer {

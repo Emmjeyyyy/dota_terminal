@@ -58,6 +58,13 @@ export const getHeroImageUrl = (id: number): string => {
   return `https://cdn.steamstatic.com/apps/dota2/images/dota_react/heroes/${urlName}.png`;
 };
 
+export const getHeroIconUrl = (id: number): string => {
+  const internalName = heroNameMap[id];
+  if (!internalName) return 'https://via.placeholder.com/32x32?text=?';
+  const urlName = internalName.replace('npc_dota_hero_', '').toLowerCase();
+  return `/hero-icons/${urlName}.png`;
+};
+
 export const getHeroAbilities = (heroId: number): any[] => {
   const internalName = heroNameMap[heroId];
   const hero = internalName ? heroExtendedMap[internalName] : null;
@@ -89,5 +96,5 @@ export const getHeroTalents = (heroId: number): any[] => {
 };
 
 export const getAbilityImageUrl = (abilityName: string): string => {
-  return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/abilities/${abilityName}.png`;
+  return `https://cdn.steamstatic.com/apps/dota2/images/dota_react/abilities/${abilityName}.png`;
 };
