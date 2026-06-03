@@ -361,7 +361,9 @@ const AdvantageGraph: React.FC<{ match: MatchDetail }> = ({ match }) => {
             <div className="flex-1 p-2 sm:p-4 pb-8 h-[300px] sm:h-auto">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        {/* @ts-expect-error: recharts ReferenceArea missing fill in types */}
                         <ReferenceArea y1={0} y2={maxVal} fill="rgba(34, 197, 94, 0.1)" label={{ position: 'insideTopLeft', value: 'RADIANT', fill: 'rgba(34, 197, 94, 0.6)', fontSize: 24, fontWeight: 900, fontFamily: 'monospace', style: { textShadow: '0 0 5px rgba(34, 197, 94, 0.3)' } }} />
+                        {/* @ts-expect-error: recharts ReferenceArea missing fill in types */}
                         <ReferenceArea y1={-maxVal} y2={0} fill="rgba(239, 68, 68, 0.1)" label={{ position: 'insideBottomLeft', value: 'DIRE', fill: 'rgba(239, 68, 68, 0.6)', fontSize: 24, fontWeight: 900, fontFamily: 'monospace', style: { textShadow: '0 0 5px rgba(239, 68, 68, 0.3)' } }} />
                         <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
                         <XAxis dataKey="timeStr" stroke="#666" tick={{ fill: '#888', fontSize: 10, fontFamily: 'monospace' }} tickMargin={10} minTickGap={30} />
