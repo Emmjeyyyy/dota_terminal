@@ -199,9 +199,9 @@ const BuildingsMap: React.FC<{ match: MatchDetail }> = ({ match }) => {
     // Group players by team and core lane to ensure carry/support stay together
     const laneGroups: Record<string, MatchPlayerDetail[]> = {};
     const getMappedRole = (p: MatchPlayerDetail) => {
-        if (p.lane_role && p.lane_role >= 1 && p.lane_role <= 3) return p.lane_role.toString();
+        if (p.lane_role && p.lane_role >= 1 && p.lane_role <= 3) return p.lane_role;
         // Force Jungle (4) into Offlane (3), and any unknowns into Mid (2)
-        return p.lane_role === 4 ? '3' : '2';
+        return p.lane_role === 4 ? 3 : 2;
     };
 
     match.players.forEach(p => {
@@ -217,7 +217,7 @@ const BuildingsMap: React.FC<{ match: MatchDetail }> = ({ match }) => {
         const indexInLane = laneGroups[key].indexOf(player);
 
         const teamConfig = isRadiant ? HERO_POSITION_MAP.Radiant : HERO_POSITION_MAP.Dire;
-        const config = teamConfig[roleKey as keyof typeof teamConfig] || teamConfig['2'];
+        const config = teamConfig[roleKey as keyof typeof teamConfig] || teamConfig[2 as keyof typeof teamConfig];
 
         const x = config.startX + (indexInLane * config.stepX);
         const y = config.startY + (indexInLane * config.stepY);
