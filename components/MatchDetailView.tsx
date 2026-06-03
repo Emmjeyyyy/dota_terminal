@@ -4,7 +4,7 @@ import { MatchDetail, MatchPlayerDetail } from '../types';
 import { getMatchDetails, requestMatchParse } from '../services/api';
 import { getHeroImageUrl, getHeroIconUrl } from '../services/heroService';
 import { Loader2, RefreshCw, ArrowLeft, Trophy, Swords } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
 import ItemTooltip from './ItemTooltip';
 import ItemWithTooltip from './ItemWithTooltip';
 
@@ -189,6 +189,36 @@ const AncientIcon = ({ isRadiant, isDestroyed }: { isRadiant: boolean, isDestroy
     );
 };
 
+const CustomAdvantageTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-[#0a0a0a] border border-theme-dim/50 p-2 font-mono text-xs shadow-lg">
+                <p className="text-theme mb-2">{`Time: ${label}`}</p>
+                {payload.map((entry: any, index: number) => {
+                    const isGold = entry.name === 'gold';
+                    const advName = isGold ? 'Gold Adv' : 'XP Adv';
+                    const advColor = isGold ? 'text-[#fbbf24]' : 'text-[#60a5fa]';
+                    
+                    const isRadiant = entry.value > 0;
+                    const teamName = isRadiant ? 'Radiant' : 'Dire';
+                    const teamColor = isRadiant ? 'text-[#22c55e]' : 'text-[#ef4444]';
+                    const val = Math.abs(entry.value);
+
+                    return (
+                        <div key={index} className="flex gap-2 my-1">
+                            <span className={`${advColor} font-bold`}>{advName}</span>
+                            <span className="text-white/50">:</span>
+                            <span className={`${teamColor} font-bold`}>{teamName}</span>
+                            <span className="text-white">+{val}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+    return null;
+};
+
 const BuildingsMap: React.FC<{ match: MatchDetail }> = ({ match }) => {
     const [showHeroes, setShowHeroes] = useState(true);
     const rs = match.tower_status_radiant ?? 0;
@@ -331,15 +361,12 @@ const AdvantageGraph: React.FC<{ match: MatchDetail }> = ({ match }) => {
             <div className="flex-1 p-2 sm:p-4 pb-8 h-[300px] sm:h-auto">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <ReferenceArea y1={0} y2={maxVal} fill="rgba(34, 197, 94, 0.1)" label={{ position: 'insideTopLeft', value: 'RADIANT', fill: 'rgba(34, 197, 94, 0.6)', fontSize: 24, fontWeight: 900, fontFamily: 'monospace', style: { textShadow: '0 0 5px rgba(34, 197, 94, 0.3)' } }} />
+                        <ReferenceArea y1={-maxVal} y2={0} fill="rgba(239, 68, 68, 0.1)" label={{ position: 'insideBottomLeft', value: 'DIRE', fill: 'rgba(239, 68, 68, 0.6)', fontSize: 24, fontWeight: 900, fontFamily: 'monospace', style: { textShadow: '0 0 5px rgba(239, 68, 68, 0.3)' } }} />
                         <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
                         <XAxis dataKey="timeStr" stroke="#666" tick={{ fill: '#888', fontSize: 10, fontFamily: 'monospace' }} tickMargin={10} minTickGap={30} />
                         <YAxis stroke="#666" tick={{ fill: '#888', fontSize: 10, fontFamily: 'monospace' }} domain={[-maxVal, maxVal]} tickFormatter={(val) => val === 0 ? '0' : (val > 0 ? `+${val / 1000}k` : `${val / 1000}k`)} width={40} />
-                        <Tooltip
-                            contentStyle={{ backgroundColor: '#0a0a0a', borderColor: 'var(--theme-color)', fontFamily: 'monospace', fontSize: '12px' }}
-                            itemStyle={{ color: '#fff' }}
-                            formatter={(value: number, name: string) => [value > 0 ? `Radiant +${value}` : `Dire +${Math.abs(value)}`, name === 'gold' ? 'Gold Adv' : 'XP Adv']}
-                            labelFormatter={(label) => `Time: ${label}`}
-                        />
+                        <Tooltip content={<CustomAdvantageTooltip />} />
                         <Line type="monotone" dataKey="gold" stroke="#fbbf24" strokeWidth={2} dot={false} isAnimationActive={false} />
                         <Line type="monotone" dataKey="xp" stroke="#60a5fa" strokeWidth={2} dot={false} isAnimationActive={false} />
                     </LineChart>
