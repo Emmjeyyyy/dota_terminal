@@ -146,12 +146,12 @@ const HERO_POSITION_MAP = {
     Radiant: {
         1: { startX: 81, startY: 83, stepX: -9, stepY: 0 }, // Safe Lane (Bot)
         2: { startX: 43, startY: 55, stepX: -6, stepY: 6 }, // Mid Lane
-        3: { startX: 13, startY: 43, stepX: 0, stepY: -10 }, // Off Lane (Top)
+        3: { startX: 13, startY: 33, stepX: 0, stepY: 10 }, // Off Lane (Top)
     },
     Dire: {
-        1: { startX: 18, startY: 14, stepX: 9, stepY: 0 }, // Safe Lane (Top)
+        1: { startX: 27, startY: 14, stepX: -9, stepY: 0 }, // Safe Lane (Top)
         2: { startX: 53, startY: 44, stepX: 6, stepY: -6 }, // Mid Lane
-        3: { startX: 86, startY: 50, stepX: 0, stepY: 10 }, // Off Lane (Bot)
+        3: { startX: 86, startY: 60, stepX: 0, stepY: -10 }, // Off Lane (Bot)
     }
 };
 
